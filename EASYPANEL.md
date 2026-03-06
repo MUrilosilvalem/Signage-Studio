@@ -124,3 +124,25 @@ if (process.env.ADMIN_PASS) {
 ## WebSocket com EasyPanel
 
 O Traefik do EasyPanel suporta WebSocket automaticamente — nenhuma configuração extra é necessária.
+
+---
+
+## ⚠️ Loop de reinicialização (porta 80)
+
+**Sintoma:** logs mostram `✅ Signage Studio rodando na porta 80` repetindo infinitamente.
+
+**Causa:** o EasyPanel estava enviando `PORT=80` como variável de ambiente. O Node.js não tem permissão de root para ouvir portas abaixo de 1024, o servidor crasha e reinicia em loop.
+
+**Solução:**
+
+1. No painel do serviço → **"Environment"**
+2. Verifique se existe `PORT=80` — **remova** ou altere para `PORT=3000`
+3. Confirme que está assim:
+
+| Variável | Valor |
+|---|---|
+| `PORT` | `3000` |
+
+O EasyPanel/Traefik roteia o tráfego externo (80/443) para a porta interna 3000 automaticamente — você **não** precisa definir `PORT=80`.
+
+4. Clique em **"Deploy"** novamente.

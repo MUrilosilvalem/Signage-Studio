@@ -10,7 +10,12 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const PORT = process.env.PORT || 3000;
+const _PORT_RAW = parseInt(process.env.PORT) || 3000;
+// Portas abaixo de 1024 requerem root — forçar 3000 se necessário
+const PORT = _PORT_RAW < 1024 ? 3000 : _PORT_RAW;
+if (_PORT_RAW !== PORT) {
+  console.warn(`⚠️  PORT=${_PORT_RAW} requer root. Usando porta ${PORT} em vez disso.`);
+}
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
 
