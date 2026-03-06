@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  signage:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - signage_uploads:/app/uploads
+      - signage_data:/app/data
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  signage_uploads:
+  signage_data:
