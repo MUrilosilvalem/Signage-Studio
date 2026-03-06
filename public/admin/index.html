@@ -762,16 +762,25 @@ async function updateScreenConfig(screenName, playlistId, orientation) {
     orientation: orientation || current.orientation || appData.config.orientation
   };
 
-  await fetch(`${API}/api/screens/config`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  
-  // Atualiza dados locais para refletir a mudança no UI
-  if(!appData.screenConfigs) appData.screenConfigs = {};
-  appData.screenConfigs[screenName] = { playlistId: payload.playlistId, orientation: payload.orientation };
-  toast('Configuração da tela atualizada!');
+  try {
+    const res = await fetch(`${API}/api/screens/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast(`❌ Erro: ${err.error || 'Falha ao atualizar tela'}`);
+      return;
+    }
+    if (!appData.screenConfigs) appData.screenConfigs = {};
+    appData.screenConfigs[screenName] = { playlistId: payload.playlistId, orientation: payload.orientation };
+    toast('✅ Configuração da tela atualizada!');
+  } catch (err) {
+    toast('❌ Erro de conexão ao atualizar tela.');
+    console.error('updateScreenConfig error:', err);
+  }
+}
 }
 
 // ═══════════════════════════════════════
@@ -827,14 +836,20 @@ function drop(e, targetIdx) {
 }
 
 async function savePlaylist() {
-  await fetch(`${API}/api/playlist/slides`, { 
-    method: 'POST', 
-    headers: { 'Content-Type': 'application/json' }, 
-    body: JSON.stringify(currentPlaylist.slides) 
-  });
-  renderPlaylist();
-  updateStats();
-  toast('Playlist atualizada nas telas!');
+  try {
+    const res = await fetch(`${API}/api/playlists/${currentPlaylist.id}/slides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentPlaylist.slides)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    renderPlaylist();
+    updateStats();
+    toast('Playlist atualizada nas telas!');
+  } catch (err) {
+    toast('❌ Erro ao salvar playlist. Tente novamente.');
+    console.error('savePlaylist error:', err);
+  }
 }
 
 async function removeSlide(i) {
