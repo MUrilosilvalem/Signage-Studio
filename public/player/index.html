@@ -229,29 +229,37 @@ function connectWS() {
     clearTimeout(wsReconnectTimer);
   };
 
-  ws.onmessage = e => {
-    const msg = JSON.parse(e.data);
-    if (msg.type === 'init') {
-      playlist = msg.payload.playlist || [];
-      config = msg.payload.config || {};
-      applyConfig();
-      if (playlist.length) startPlayer();
-    } else if (msg.type === 'playlist') {
-      playlist = msg.payload || [];
-      applyConfig();
-      restartPlayer();
-    } else if (msg.type === 'config') {
-      config = { ...config, ...msg.payload };
-      applyConfig();
-    }
-  };
+  // Localize o evento ws.onmessage e garanta que ele limpa e reinicia:
+ws.onmessage = e => {
+  const msg = JSON.parse(e.data);
+  if (msg.type === 'init' || msg.type === 'playlist') {
+    // Se for init, o payload contém config e playlist customizados para ESTA tela
+    playlist = msg.payload.playlist || [];
+    config = msg.payload.config || {};
+    
+    // Aplica orientação customizada
+    applyConfig(); 
+    
+    // Reinicia os slides para a nova playlist vinculada
+    restartPlayer(); 
+  } else if (msg.type === 'config') {
+    config = { ...config, ...msg.payload };
+    applyConfig();
+  }
+};
 
-  ws.onclose = () => {
-    document.getElementById('conn').className = 'warn';
-    wsReconnectTimer = setTimeout(connectWS, 3000);
-  };
-
-  ws.onerror = () => ws.close();
+// Certifique-se que applyConfig use a config local (recebida do servidor):
+function applyConfig() {
+  const c = config;
+  document.getElementById('hud-logo').textContent = c.logo || 'SIGNAGE';
+  document.documentElement.style.setProperty('--accent', c.accent || '#00e5ff');
+  
+  // Aplica a classe de orientação baseada na config customizada
+  const body = document.body;
+  if (c.orientation === 'portrait') body.classList.add('portrait');
+  else body.classList.remove('portrait');
+  
+  // ... (restante da lógica de HUD e Ticker)
 }
 
 // ════════════════════════════════════
