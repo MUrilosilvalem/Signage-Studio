@@ -673,6 +673,25 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
       <button class="btn btn-ghost btn-sm" onclick="editorCopyToOther()">⇄ Copiar para outra orientação</button>
     </div>
 
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px">Resolução de saída</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="res-btns">
+        <button class="editor-fit-btn" onclick="editorSetRes('hd')"     id="res-hd">HD<br><span style="font-size:.65rem;opacity:.7">1280×720</span></button>
+        <button class="editor-fit-btn active" onclick="editorSetRes('fhd')" id="res-fhd">Full HD<br><span style="font-size:.65rem;opacity:.7">1920×1080</span></button>
+        <button class="editor-fit-btn" onclick="editorSetRes('2k')"     id="res-2k">2K<br><span style="font-size:.65rem;opacity:.7">2560×1440</span></button>
+        <button class="editor-fit-btn" onclick="editorSetRes('4k')"     id="res-4k">4K UHD<br><span style="font-size:.65rem;opacity:.7">3840×2160</span></button>
+        <button class="editor-fit-btn" onclick="editorSetRes('custom')" id="res-custom">Personalizado<br><span style="font-size:.65rem;opacity:.7">W × H</span></button>
+      </div>
+      <div id="res-custom-row" style="display:none;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+        <input class="form-input" id="res-custom-w" type="number" min="100" max="8000" value="1920" placeholder="Largura" style="width:110px">
+        <span style="color:var(--muted)">×</span>
+        <input class="form-input" id="res-custom-h" type="number" min="100" max="8000" value="1080" placeholder="Altura" style="width:110px">
+        <button class="btn btn-ghost btn-sm" onclick="editorApplyCustomRes()">Aplicar</button>
+        <span style="font-size:.75rem;color:var(--muted)" id="res-custom-ratio"></span>
+      </div>
+      <div id="res-info" style="font-size:.75rem;color:var(--muted);margin-bottom:12px"></div>
+    </div>
+
     <div class="editor-save-row">
       <span class="editor-info" id="editor-save-info"></span>
       <button class="btn btn-ghost" onclick="closeImageEditor()">Cancelar</button>
@@ -1355,7 +1374,8 @@ const editor = {
   OUTPUT: {
     landscape: { w: 1920, h: 1080 },
     portrait:  { w: 1080, h: 1920 }
-  }
+  },
+  resKey: 'fhd'
 };
 
 // Canvas helpers
@@ -1398,6 +1418,7 @@ function openImageEditor(mediaId) {
   editorState.portrait  = { x: 0, y: 0, zoom: 1, fitMode: 'contain' };
 
   editorSetActive('landscape');
+  editorSetRes(editor.resKey || 'fhd');
   document.getElementById('img-editor-modal').classList.add('open');
 
   // Init both canvases to their display size
@@ -1698,6 +1719,59 @@ async function uploadOutputCanvas(view, baseName) {
   const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
   if (!res.ok) throw new Error('Upload falhou ' + view);
   return res.json();
+}
+
+
+// ── Resolution presets ──
+const RES_PRESETS = {
+  hd:     { label: 'HD',           landscape: { w: 1280, h: 720  }, portrait: { w: 720,  h: 1280 } },
+  fhd:    { label: 'Full HD',      landscape: { w: 1920, h: 1080 }, portrait: { w: 1080, h: 1920 } },
+  '2k':   { label: '2K',           landscape: { w: 2560, h: 1440 }, portrait: { w: 1440, h: 2560 } },
+  '4k':   { label: '4K UHD',       landscape: { w: 3840, h: 2160 }, portrait: { w: 2160, h: 3840 } },
+  custom: { label: 'Personalizado', landscape: { w: 1920, h: 1080 }, portrait: { w: 1080, h: 1920 } }
+};
+
+function editorSetRes(key) {
+  editor.resKey = key;
+  Object.keys(RES_PRESETS).forEach(k =>
+    document.getElementById('res-' + k).classList.toggle('active', k === key)
+  );
+  const customRow = document.getElementById('res-custom-row');
+  customRow.style.display = key === 'custom' ? 'flex' : 'none';
+  if (key !== 'custom') {
+    const p = RES_PRESETS[key];
+    editor.OUTPUT.landscape = { ...p.landscape };
+    editor.OUTPUT.portrait  = { ...p.portrait };
+  }
+  updateResInfo();
+}
+
+function editorApplyCustomRes() {
+  const w = parseInt(document.getElementById('res-custom-w').value) || 1920;
+  const h = parseInt(document.getElementById('res-custom-h').value) || 1080;
+  // Clamp
+  const cw = Math.max(100, Math.min(8000, w));
+  const ch = Math.max(100, Math.min(8000, h));
+  document.getElementById('res-custom-w').value = cw;
+  document.getElementById('res-custom-h').value = ch;
+  RES_PRESETS.custom.landscape = { w: cw, h: ch };
+  RES_PRESETS.custom.portrait  = { w: ch, h: cw }; // swap for portrait
+  editor.OUTPUT.landscape = { w: cw, h: ch };
+  editor.OUTPUT.portrait  = { w: ch, h: cw };
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const g = gcd(cw, ch);
+  document.getElementById('res-custom-ratio').textContent = `Proporção: ${cw/g}:${ch/g}`;
+  updateResInfo();
+  toast(`✅ Resolução personalizada: ${cw}×${ch}`);
+}
+
+function updateResInfo() {
+  const lw = editor.OUTPUT.landscape.w, lh = editor.OUTPUT.landscape.h;
+  const pw = editor.OUTPUT.portrait.w,  ph = editor.OUTPUT.portrait.h;
+  const lMp = ((lw * lh) / 1e6).toFixed(1);
+  const pMp = ((pw * ph) / 1e6).toFixed(1);
+  document.getElementById('res-info').textContent =
+    `Horizontal: ${lw}×${lh} (${lMp} MP)  ·  Vertical: ${pw}×${ph} (${pMp} MP)`;
 }
 
 async function editorSaveActive() {
