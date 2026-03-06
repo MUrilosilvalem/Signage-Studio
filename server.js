@@ -10,12 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const _PORT_RAW = parseInt(process.env.PORT) || 3000;
-// Portas abaixo de 1024 requerem root — forçar 3000 se necessário
-const PORT = _PORT_RAW < 1024 ? 3000 : _PORT_RAW;
-if (_PORT_RAW !== PORT) {
-  console.warn(`⚠️  PORT=${_PORT_RAW} requer root. Usando porta ${PORT} em vez disso.`);
-}
+const PORT = parseInt(process.env.PORT) || 80;
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
 
@@ -352,3 +347,26 @@ wss.on('connection', (ws, req) => {
 // START
 // ═══════════════════════════════════════
 server.listen(PORT, () => console.log(`✅ Signage Studio rodando na porta ${PORT}`));
+
+// Captura erros não tratados para aparecer nos logs do EasyPanel
+process.on('uncaughtException', (err) => {
+  console.error('❌ Erro não tratado:', err.message);
+  console.error(err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('❌ Promise rejeitada:', reason);
+  process.exit(1);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EACCES') {
+    console.error(`❌ Porta ${PORT} requer permissão root. Defina PORT=3000 nas variáveis de ambiente.`);
+  } else if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Porta ${PORT} já está em uso.`);
+  } else {
+    console.error('❌ Erro no servidor:', err.message);
+  }
+  process.exit(1);
+});
