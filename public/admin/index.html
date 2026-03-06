@@ -190,23 +190,37 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 
 
 /* ── Image Editor ── */
-#img-editor-modal .modal {
-  width: min(900px, 96vw);
-  max-height: 95vh;
+.editor-previews {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.editor-preview-block { display: flex; flex-direction: column; gap: 6px; }
+.editor-preview-label {
+  font-size: .68rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); text-align: center;
 }
 .editor-canvas-wrap {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16/9;
   background: #000;
   border-radius: 8px;
   overflow: hidden;
   cursor: grab;
   user-select: none;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
+  transition: border-color .18s;
+}
+.editor-canvas-wrap.active-view {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,229,255,.15);
 }
 .editor-canvas-wrap:active { cursor: grabbing; }
-#editor-canvas { display: block; width: 100%; height: 100%; }
+.editor-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
+/* Landscape: 16:9 */
+#editor-wrap-landscape { aspect-ratio: 16/9; }
+/* Portrait: 9:16 */
+#editor-wrap-portrait { aspect-ratio: 9/16; max-height: 260px; margin: 0 auto; width: auto; aspect-ratio: 9/16; }
 .editor-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -605,11 +619,27 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 
 <!-- Image Editor Modal -->
 <div class="modal-overlay" id="img-editor-modal">
-  <div class="modal" style="width:min(900px,96vw);max-height:95vh;overflow-y:auto">
-    <div class="modal-title">✂️ Ajustar Imagem — 16:9</div>
+  <div class="modal" style="width:min(960px,96vw);max-height:96vh;overflow-y:auto">
+    <div class="modal-title">✂️ Ajustar Imagem</div>
 
-    <div class="editor-canvas-wrap" id="editor-canvas-wrap">
-      <canvas id="editor-canvas"></canvas>
+    <!-- Dual preview: landscape + portrait -->
+    <div class="editor-previews">
+      <div class="editor-preview-block">
+        <div class="editor-preview-label">🖥️ Horizontal (16:9)</div>
+        <div class="editor-canvas-wrap active-view" id="editor-wrap-landscape" onclick="editorSetActive('landscape')">
+          <canvas id="editor-canvas-landscape"></canvas>
+        </div>
+      </div>
+      <div class="editor-preview-block">
+        <div class="editor-preview-label">📱 Vertical (9:16)</div>
+        <div class="editor-canvas-wrap" id="editor-wrap-portrait" onclick="editorSetActive('portrait')" style="width:56%;margin:0 auto">
+          <canvas id="editor-canvas-portrait"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:10px">
+      Clique no preview para selecionar qual orientação editar · Arraste para reposicionar · Scroll para zoom
     </div>
 
     <div class="editor-fit-btns">
@@ -622,31 +652,32 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
     <div class="editor-controls">
       <div class="editor-ctrl-group">
         <div class="editor-ctrl-label">Zoom <span id="zoom-val">100%</span></div>
-        <input type="range" class="editor-slider" id="editor-zoom" min="10" max="300" value="100" oninput="editorUpdate()">
+        <input type="range" class="editor-slider" id="editor-zoom" min="10" max="500" value="100" oninput="editorUpdate()">
       </div>
       <div class="editor-ctrl-group">
         <div class="editor-ctrl-label">Brilho <span id="brightness-val">100%</span></div>
-        <input type="range" class="editor-slider" id="editor-brightness" min="20" max="200" value="100" oninput="editorUpdate()">
+        <input type="range" class="editor-slider" id="editor-brightness" min="20" max="200" value="100" oninput="editorDraw()">
       </div>
       <div class="editor-ctrl-group">
         <div class="editor-ctrl-label">Contraste <span id="contrast-val">100%</span></div>
-        <input type="range" class="editor-slider" id="editor-contrast" min="20" max="200" value="100" oninput="editorUpdate()">
+        <input type="range" class="editor-slider" id="editor-contrast" min="20" max="200" value="100" oninput="editorDraw()">
       </div>
       <div class="editor-ctrl-group">
         <div class="editor-ctrl-label">Saturação <span id="saturation-val">100%</span></div>
-        <input type="range" class="editor-slider" id="editor-saturation" min="0" max="300" value="100" oninput="editorUpdate()">
+        <input type="range" class="editor-slider" id="editor-saturation" min="0" max="300" value="100" oninput="editorDraw()">
       </div>
     </div>
 
-    <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span class="editor-info" id="editor-info">Arraste para reposicionar · Scroll para zoom</span>
-      <button class="btn btn-ghost btn-sm" onclick="editorReset()">↺ Resetar</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="editorReset()">↺ Resetar orientação ativa</button>
+      <button class="btn btn-ghost btn-sm" onclick="editorCopyToOther()">⇄ Copiar para outra orientação</button>
     </div>
 
     <div class="editor-save-row">
       <span class="editor-info" id="editor-save-info"></span>
       <button class="btn btn-ghost" onclick="closeImageEditor()">Cancelar</button>
-      <button class="btn btn-primary" onclick="editorSaveAndReplace()">💾 Salvar e substituir</button>
+      <button class="btn btn-primary" onclick="editorSaveActive()">💾 Salvar orientação ativa</button>
+      <button class="btn btn-primary" style="background:var(--success);color:#000" onclick="editorSaveBoth()">💾 Salvar ambas</button>
     </div>
   </div>
 </div>
@@ -1306,265 +1337,404 @@ function toast(msg) {
 
 
 // ═══════════════════════════════════════
-// IMAGE EDITOR 16:9
+// IMAGE EDITOR — HORIZONTAL + VERTICAL
 // ═══════════════════════════════════════
+
+// State per orientation
+const editorState = {
+  landscape: { x: 0, y: 0, zoom: 1, fitMode: 'contain' },
+  portrait:  { x: 0, y: 0, zoom: 1, fitMode: 'contain' }
+};
+
 const editor = {
   mediaId: null,
   img: null,
-  canvas: null,
-  ctx: null,
-  // transform state
-  x: 0, y: 0, zoom: 1,
-  fitMode: 'contain',
+  activeView: 'landscape', // which canvas the sliders/drag control
   dragging: false,
   lastX: 0, lastY: 0,
-  // output size
-  W: 1920, H: 1080
+  OUTPUT: {
+    landscape: { w: 1920, h: 1080 },
+    portrait:  { w: 1080, h: 1920 }
+  }
 };
+
+// Canvas helpers
+function getCanvas(view) {
+  return document.getElementById('editor-canvas-' + (view || editor.activeView));
+}
+function getWrap(view) {
+  return document.getElementById('editor-wrap-' + (view || editor.activeView));
+}
+function getCtx(view) {
+  return getCanvas(view).getContext('2d');
+}
+function getState(view) {
+  return editorState[view || editor.activeView];
+}
 
 function openImageEditor(mediaId) {
   const m = appData.media.find(x => x.id === mediaId);
   if (!m || m.type !== 'image') return;
 
   editor.mediaId = mediaId;
-  editor.fitMode = 'contain';
-
-  const modal = document.getElementById('img-editor-modal');
-  modal.classList.add('open');
+  editor.img = null;
+  editor.activeView = 'landscape';
 
   // Reset controls
-  document.getElementById('editor-zoom').value = 100;
+  ['editor-zoom','editor-brightness','editor-contrast','editor-saturation'].forEach(id => {
+    document.getElementById(id).value =
+      id === 'editor-zoom' ? 100 :
+      id === 'editor-saturation' ? 100 : 100;
+  });
   document.getElementById('editor-brightness').value = 100;
   document.getElementById('editor-contrast').value = 100;
   document.getElementById('editor-saturation').value = 100;
   document.getElementById('editor-save-info').textContent = '';
-  updateEditorLabels();
 
-  ['contain','cover','stretch','blur-bg'].forEach(f => {
-    document.getElementById('fit-' + f).classList.toggle('active', f === 'contain');
+  ['contain','cover','stretch','blur-bg'].forEach(f =>
+    document.getElementById('fit-' + f).classList.toggle('active', f === 'contain')
+  );
+  editorState.landscape = { x: 0, y: 0, zoom: 1, fitMode: 'contain' };
+  editorState.portrait  = { x: 0, y: 0, zoom: 1, fitMode: 'contain' };
+
+  editorSetActive('landscape');
+  document.getElementById('img-editor-modal').classList.add('open');
+
+  // Init both canvases to their display size
+  ['landscape','portrait'].forEach(view => {
+    const wrap = getWrap(view);
+    const canvas = getCanvas(view);
+    canvas.width  = wrap.clientWidth  || (view === 'landscape' ? 400 : 150);
+    canvas.height = wrap.clientHeight || (view === 'landscape' ? 225 : 267);
   });
 
-  // Setup canvas
-  editor.canvas = document.getElementById('editor-canvas');
-  editor.ctx = editor.canvas.getContext('2d');
-  editor.canvas.width = editor.W;
-  editor.canvas.height = editor.H;
-
-  // Load image
+  // Load image (same-origin, no crossOrigin needed)
   const img = new Image();
-  img.crossOrigin = 'anonymous';
   img.onload = () => {
     editor.img = img;
-    editorAutoFit();
-    editorDraw();
+    editorAutoFit('landscape');
+    editorAutoFit('portrait');
+    editorDraw('landscape');
+    editorDraw('portrait');
+    updateEditorLabels();
   };
   img.onerror = () => toast('❌ Erro ao carregar imagem');
-  img.src = m.url + '?t=' + Date.now(); // cache-bust
-
-  // Setup drag
-  setupEditorDrag();
+  img.src = m.url;
 }
 
-function editorAutoFit() {
-  const img = editor.img;
-  const scaleX = editor.W / img.naturalWidth;
-  const scaleY = editor.H / img.naturalHeight;
-
-  if (editor.fitMode === 'contain') {
-    editor.zoom = Math.min(scaleX, scaleY);
-  } else if (editor.fitMode === 'cover' || editor.fitMode === 'blur-bg') {
-    editor.zoom = Math.max(scaleX, scaleY);
-  } else if (editor.fitMode === 'stretch') {
-    editor.zoom = 1; // handled separately in draw
-  }
-
-  // Center
-  editor.x = (editor.W - img.naturalWidth * editor.zoom) / 2;
-  editor.y = (editor.H - img.naturalHeight * editor.zoom) / 2;
-  document.getElementById('editor-zoom').value = Math.round(editor.zoom * 100);
+function editorSetActive(view) {
+  editor.activeView = view;
+  document.getElementById('editor-wrap-landscape').classList.toggle('active-view', view === 'landscape');
+  document.getElementById('editor-wrap-portrait').classList.toggle('active-view', view === 'portrait');
   updateEditorLabels();
+}
+
+function editorAutoFit(view) {
+  if (!editor.img) return;
+  const canvas = getCanvas(view);
+  const w = canvas.width || getWrap(view).clientWidth;
+  const h = canvas.height || getWrap(view).clientHeight;
+  const iw = editor.img.naturalWidth;
+  const ih = editor.img.naturalHeight;
+  const st = getState(view);
+  const scaleX = w / iw, scaleY = h / ih;
+
+  if (st.fitMode === 'contain') {
+    st.zoom = Math.min(scaleX, scaleY);
+  } else if (st.fitMode === 'cover' || st.fitMode === 'blur-bg') {
+    st.zoom = Math.max(scaleX, scaleY);
+  } else {
+    st.zoom = Math.min(scaleX, scaleY);
+  }
+  st.x = (w - iw * st.zoom) / 2;
+  st.y = (h - ih * st.zoom) / 2;
 }
 
 function editorFit(mode) {
-  editor.fitMode = mode;
-  ['contain','cover','stretch','blur-bg'].forEach(f => {
-    document.getElementById('fit-' + f).classList.toggle('active', f === mode);
-  });
-  editorAutoFit();
-  editorDraw();
+  ['contain','cover','stretch','blur-bg'].forEach(f =>
+    document.getElementById('fit-' + f).classList.toggle('active', f === mode)
+  );
+  const st = getState();
+  st.fitMode = mode;
+  editorAutoFit(editor.activeView);
+  editorDraw(editor.activeView);
+  updateEditorLabels();
 }
 
 function editorUpdate() {
-  editor.zoom = document.getElementById('editor-zoom').value / 100;
+  const st = getState();
+  const canvas = getCanvas();
+  const w = canvas.width, h = canvas.height;
+  const newZoom = document.getElementById('editor-zoom').value / 100;
+  const cx = w / 2, cy = h / 2;
+  if (st.zoom > 0) {
+    st.x = cx - (cx - st.x) * (newZoom / st.zoom);
+    st.y = cy - (cy - st.y) * (newZoom / st.zoom);
+  }
+  st.zoom = newZoom;
   updateEditorLabels();
-  editorDraw();
+  editorDraw(editor.activeView);
 }
 
 function updateEditorLabels() {
-  document.getElementById('zoom-val').textContent = Math.round(editor.zoom * 100) + '%';
+  const st = getState();
+  document.getElementById('editor-zoom').value = Math.round((st.zoom || 1) * 100);
+  document.getElementById('zoom-val').textContent = Math.round((st.zoom || 1) * 100) + '%';
   document.getElementById('brightness-val').textContent = document.getElementById('editor-brightness').value + '%';
   document.getElementById('contrast-val').textContent = document.getElementById('editor-contrast').value + '%';
   document.getElementById('saturation-val').textContent = document.getElementById('editor-saturation').value + '%';
+  // sync fit buttons to active view
+  ['contain','cover','stretch','blur-bg'].forEach(f =>
+    document.getElementById('fit-' + f).classList.toggle('active', f === st.fitMode)
+  );
 }
 
-function editorDraw() {
-  if (!editor.img || !editor.ctx) return;
-  const ctx = editor.ctx;
-  const W = editor.W, H = editor.H;
+function getFilterString() {
+  const b = document.getElementById('editor-brightness').value;
+  const c = document.getElementById('editor-contrast').value;
+  const s = document.getElementById('editor-saturation').value;
+  return `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+}
+
+function editorDrawOnCtx(ctx, w, h, st) {
+  if (!editor.img) return;
   const img = editor.img;
+  ctx.save();
+  ctx.clearRect(0, 0, w, h);
 
-  ctx.clearRect(0, 0, W, H);
-
-  // Apply CSS filters via offscreen
-  const brightness = document.getElementById('editor-brightness').value;
-  const contrast = document.getElementById('editor-contrast').value;
-  const saturation = document.getElementById('editor-saturation').value;
-  ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
-
-  if (editor.fitMode === 'blur-bg') {
-    // Draw blurred full background
+  if (st.fitMode === 'stretch') {
+    ctx.filter = getFilterString();
+    ctx.drawImage(img, 0, 0, w, h);
+  } else if (st.fitMode === 'blur-bg') {
     ctx.save();
-    ctx.filter = `blur(30px) brightness(${brightness * 0.6}%) contrast(${contrast}%) saturate(${saturation}%)`;
-    const bgScale = Math.max(W / img.naturalWidth, H / img.naturalHeight) * 1.1;
-    const bgX = (W - img.naturalWidth * bgScale) / 2;
-    const bgY = (H - img.naturalHeight * bgScale) / 2;
-    ctx.drawImage(img, bgX, bgY, img.naturalWidth * bgScale, img.naturalHeight * bgScale);
+    ctx.filter = `blur(${Math.round(w * 0.02)}px) brightness(40%) saturate(${document.getElementById('editor-saturation').value}%)`;
+    const bgZoom = Math.max(w / img.naturalWidth, h / img.naturalHeight) * 1.2;
+    ctx.drawImage(img,
+      (w - img.naturalWidth * bgZoom) / 2,
+      (h - img.naturalHeight * bgZoom) / 2,
+      img.naturalWidth * bgZoom, img.naturalHeight * bgZoom);
     ctx.restore();
-    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
-  } else if (editor.fitMode === 'stretch') {
-    ctx.drawImage(img, 0, 0, W, H);
-    ctx.filter = 'none';
-    return;
+    ctx.filter = getFilterString();
+    ctx.drawImage(img, st.x, st.y, img.naturalWidth * st.zoom, img.naturalHeight * st.zoom);
   } else {
-    // Black background
-    ctx.filter = 'none';
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, W, H);
-    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    if (st.fitMode === 'contain') {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+    }
+    ctx.filter = getFilterString();
+    ctx.drawImage(img, st.x, st.y, img.naturalWidth * st.zoom, img.naturalHeight * st.zoom);
   }
+  ctx.restore();
+}
 
-  const drawW = img.naturalWidth * editor.zoom;
-  const drawH = img.naturalHeight * editor.zoom;
-  ctx.drawImage(img, editor.x, editor.y, drawW, drawH);
-  ctx.filter = 'none';
+function editorDraw(view) {
+  const v = view || editor.activeView;
+  const canvas = getCanvas(v);
+  if (!canvas) return;
+  editorDrawOnCtx(getCtx(v), canvas.width, canvas.height, getState(v));
 }
 
 function editorReset() {
-  document.getElementById('editor-zoom').value = 100;
-  document.getElementById('editor-brightness').value = 100;
-  document.getElementById('editor-contrast').value = 100;
-  document.getElementById('editor-saturation').value = 100;
+  const st = getState();
+  st.fitMode = 'contain';
+  ['contain','cover','stretch','blur-bg'].forEach(f =>
+    document.getElementById('fit-' + f).classList.toggle('active', f === 'contain')
+  );
+  editorAutoFit(editor.activeView);
+  editorDraw(editor.activeView);
   updateEditorLabels();
-  editorAutoFit();
-  editorDraw();
 }
 
-function setupEditorDrag() {
-  const wrap = document.getElementById('editor-canvas-wrap');
+function editorCopyToOther() {
+  const from = editor.activeView;
+  const to = from === 'landscape' ? 'portrait' : 'landscape';
+  const fromSt = getState(from);
+  const fromCanvas = getCanvas(from);
+  const toCanvas = getCanvas(to);
+  const ratio = toCanvas.width / fromCanvas.width;
+  editorState[to] = {
+    fitMode: fromSt.fitMode,
+    zoom: fromSt.zoom * ratio,
+    x: fromSt.x * ratio,
+    y: fromSt.y * ratio
+  };
+  editorDraw(to);
+  toast('⇄ Configuração copiada!');
+}
 
-  // Remove previous listeners by cloning
-  const newWrap = wrap.cloneNode(true);
-  newWrap.appendChild(editor.canvas);
-  wrap.parentNode.replaceChild(newWrap, wrap);
+// ── Interaction (one delegated listener) ──
+(function() {
+  let active = false;
 
-  newWrap.addEventListener('mousedown', e => {
-    if (editor.fitMode === 'stretch') return;
-    editor.dragging = true;
+  function getActiveWrap() { return getWrap(editor.activeView); }
+
+  document.addEventListener('mousedown', e => {
+    const wrap = getWrap('landscape');
+    const wrap2 = getWrap('portrait');
+    if (!wrap || !wrap2) return;
+    if (!wrap.contains(e.target) && !wrap2.contains(e.target)) return;
+    if (!editor.img) return;
+    active = true;
     editor.lastX = e.clientX;
     editor.lastY = e.clientY;
     e.preventDefault();
   });
 
-  window.addEventListener('mousemove', e => {
-    if (!editor.dragging) return;
-    const scale = editor.W / newWrap.offsetWidth;
-    editor.x += (e.clientX - editor.lastX) * scale;
-    editor.y += (e.clientY - editor.lastY) * scale;
+  document.addEventListener('mousemove', e => {
+    if (!active) return;
+    const canvas = getCanvas();
+    const wrap = getActiveWrap();
+    if (!wrap) return;
+    const scale = canvas.width / wrap.clientWidth;
+    const st = getState();
+    st.x += (e.clientX - editor.lastX) * scale;
+    st.y += (e.clientY - editor.lastY) * scale;
     editor.lastX = e.clientX;
     editor.lastY = e.clientY;
     editorDraw();
   });
 
-  window.addEventListener('mouseup', () => { editor.dragging = false; });
+  document.addEventListener('mouseup', () => { active = false; });
 
-  // Touch drag
-  newWrap.addEventListener('touchstart', e => {
-    if (editor.fitMode === 'stretch') return;
-    editor.dragging = true;
+  document.addEventListener('touchstart', e => {
+    const wrap = getWrap('landscape');
+    const wrap2 = getWrap('portrait');
+    if (!wrap || !wrap2) return;
+    if (!wrap.contains(e.target) && !wrap2.contains(e.target)) return;
+    if (!editor.img) return;
+    active = true;
     editor.lastX = e.touches[0].clientX;
     editor.lastY = e.touches[0].clientY;
-    e.preventDefault();
-  }, { passive: false });
+  }, { passive: true });
 
-  window.addEventListener('touchmove', e => {
-    if (!editor.dragging) return;
-    const scale = editor.W / newWrap.offsetWidth;
-    editor.x += (e.touches[0].clientX - editor.lastX) * scale;
-    editor.y += (e.touches[0].clientY - editor.lastY) * scale;
+  document.addEventListener('touchmove', e => {
+    if (!active) return;
+    const canvas = getCanvas();
+    const wrap = getActiveWrap();
+    if (!wrap) return;
+    const scale = canvas.width / wrap.clientWidth;
+    const st = getState();
+    st.x += (e.touches[0].clientX - editor.lastX) * scale;
+    st.y += (e.touches[0].clientY - editor.lastY) * scale;
     editor.lastX = e.touches[0].clientX;
     editor.lastY = e.touches[0].clientY;
     editorDraw();
-  }, { passive: false });
+  }, { passive: true });
 
-  window.addEventListener('touchend', () => { editor.dragging = false; });
+  document.addEventListener('touchend', () => { active = false; });
 
-  // Scroll to zoom
-  newWrap.addEventListener('wheel', e => {
+  document.addEventListener('wheel', e => {
+    const wrapL = getWrap('landscape');
+    const wrapP = getWrap('portrait');
+    if (!wrapL || !wrapP) return;
+    const targetWrap = wrapL.contains(e.target) ? wrapL : wrapP.contains(e.target) ? wrapP : null;
+    if (!targetWrap || !editor.img) return;
     e.preventDefault();
-    if (editor.fitMode === 'stretch') return;
-    const rect = newWrap.getBoundingClientRect();
-    const scale = editor.W / rect.width;
+    const viewForWrap = targetWrap.id.includes('landscape') ? 'landscape' : 'portrait';
+    editorSetActive(viewForWrap);
+    const canvas = getCanvas(viewForWrap);
+    const rect = targetWrap.getBoundingClientRect();
+    const scale = canvas.width / rect.width;
     const mx = (e.clientX - rect.left) * scale;
     const my = (e.clientY - rect.top) * scale;
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newZoom = Math.max(0.1, Math.min(3, editor.zoom * delta));
-    // Zoom toward cursor
-    editor.x = mx - (mx - editor.x) * (newZoom / editor.zoom);
-    editor.y = my - (my - editor.y) * (newZoom / editor.zoom);
-    editor.zoom = newZoom;
-    document.getElementById('editor-zoom').value = Math.round(editor.zoom * 100);
+    const delta = e.deltaY > 0 ? 0.92 : 1.08;
+    const st = getState(viewForWrap);
+    const newZoom = Math.max(0.05, Math.min(10, st.zoom * delta));
+    st.x = mx - (mx - st.x) * (newZoom / st.zoom);
+    st.y = my - (my - st.y) * (newZoom / st.zoom);
+    st.zoom = newZoom;
+    document.getElementById('editor-zoom').value = Math.round(st.zoom * 100);
     updateEditorLabels();
-    editorDraw();
+    editorDraw(viewForWrap);
   }, { passive: false });
+})();
+
+window.addEventListener('resize', () => {
+  if (!editor.img) return;
+  ['landscape','portrait'].forEach(view => {
+    const wrap = getWrap(view);
+    const canvas = getCanvas(view);
+    if (!wrap || !canvas) return;
+    const prevW = canvas.width;
+    const newW = wrap.clientWidth;
+    const newH = wrap.clientHeight;
+    if (!newW || !newH) return;
+    const ratio = newW / prevW;
+    const st = getState(view);
+    st.x *= ratio; st.y *= ratio; st.zoom *= ratio;
+    canvas.width = newW;
+    canvas.height = newH;
+    editorDraw(view);
+  });
+  updateEditorLabels();
+});
+
+// ── Export helpers ──
+function buildOutputCanvas(view) {
+  const OUT = editor.OUTPUT[view];
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = OUT.w;
+  outCanvas.height = OUT.h;
+  const previewCanvas = getCanvas(view);
+  const st = getState(view);
+  const scaleUp = OUT.w / previewCanvas.width;
+  const scaledSt = {
+    fitMode: st.fitMode,
+    zoom: st.zoom * scaleUp,
+    x: st.x * scaleUp,
+    y: st.y * scaleUp
+  };
+  editorDrawOnCtx(outCanvas.getContext('2d'), OUT.w, OUT.h, scaledSt);
+  return outCanvas;
 }
 
-async function editorSaveAndReplace() {
+async function uploadOutputCanvas(view, baseName) {
+  const outCanvas = buildOutputCanvas(view);
+  const OUT = editor.OUTPUT[view];
+  const suffix = view === 'landscape' ? `_${OUT.w}x${OUT.h}` : `_${OUT.w}x${OUT.h}_vertical`;
+  const blob = await new Promise(resolve => outCanvas.toBlob(resolve, 'image/jpeg', 0.93));
+  const fd = new FormData();
+  fd.append('file', blob, baseName + suffix + '.jpg');
+  const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
+  if (!res.ok) throw new Error('Upload falhou ' + view);
+  return res.json();
+}
+
+async function editorSaveActive() {
+  await editorSaveViews([editor.activeView]);
+}
+
+async function editorSaveBoth() {
+  await editorSaveViews(['landscape','portrait']);
+}
+
+async function editorSaveViews(views) {
   const infoEl = document.getElementById('editor-save-info');
-  infoEl.textContent = '⏳ Salvando...';
-
+  infoEl.textContent = '⏳ Gerando...';
   try {
-    // Export canvas to blob
-    const blob = await new Promise(resolve =>
-      editor.canvas.toBlob(resolve, 'image/jpeg', 0.92)
-    );
-
-    // Find original media item to get extension/name
     const m = appData.media.find(x => x.id === editor.mediaId);
-    const filename = (m?.originalName || 'imagem').replace(/\.[^.]+$/, '') + '_16x9.jpg';
-
-    const fd = new FormData();
-    fd.append('file', blob, filename);
-
-    const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
-    if (!res.ok) throw new Error('Upload falhou');
-
-    const newItem = await res.json();
-    appData.media.push(newItem);
-
-    renderMedia();
-    updateStats();
-    infoEl.textContent = '✅ Salvo na biblioteca!';
-    toast('✅ Imagem 16:9 salva na biblioteca!');
-    setTimeout(closeImageEditor, 1200);
+    const baseName = (m?.originalName || 'imagem').replace(/\.[^.]+$/, '');
+    for (const view of views) {
+      const item = await uploadOutputCanvas(view, baseName);
+      appData.media.push(item);
+    }
+    renderMedia(); updateStats();
+    infoEl.textContent = `✅ ${views.length > 1 ? 'Ambas salvas' : 'Salvo'}!`;
+    toast(`✅ ${views.length > 1 ? '2 imagens salvas' : 'Imagem salva'} na biblioteca!`);
+    setTimeout(closeImageEditor, 1000);
   } catch(e) {
     infoEl.textContent = '❌ Erro ao salvar';
-    toast('❌ Erro ao salvar imagem');
+    toast('❌ Erro ao salvar');
     console.error(e);
   }
 }
 
 function closeImageEditor() {
   document.getElementById('img-editor-modal').classList.remove('open');
+  ['landscape','portrait'].forEach(view => {
+    const ctx = getCtx(view);
+    if (ctx) ctx.clearRect(0, 0, getCanvas(view).width, getCanvas(view).height);
+  });
   editor.img = null;
   editor.mediaId = null;
 }
