@@ -1,12 +1,12 @@
 {
   "playlists": [
     {
-      "id": "3686572eca14852b",
+      "id": "default",
       "name": "Playlist Principal",
       "slides": []
     }
   ],
-  "activePlaylistId": "3686572eca14852b",
+  "activePlaylistId": "default",
   "config": {
     "logo": "MINHA EMPRESA",
     "accent": "#00e5ff",
@@ -16,10 +16,10 @@
     "showHud": true,
     "showDots": true,
     "fitCover": false,
+    "orientation": "landscape",
     "tickerEnabled": false,
     "tickerText": "",
-    "tickerLabel": "AVISOS",
-    "orientation": "landscape"
+    "tickerLabel": "AVISOS"
   },
   "media": []
 }
