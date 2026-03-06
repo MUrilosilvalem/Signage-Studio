@@ -716,36 +716,62 @@ function openPlayerUrl() {
   window.open(`${location.protocol}//${location.host}/player`, '_blank');
 }
 
+// Substitua a função loadPlayers existente no seu <script>:
 async function loadPlayers() {
   const res = await fetch(`${API}/api/players`);
-  const players = await res.json();
-  document.getElementById('stat-players').textContent = players.length;
+  const playersList = await res.json();
+  const listEl = document.getElementById('players-list');
 
-  const badge = document.getElementById('players-badge');
-  const countEl = document.getElementById('players-count');
-  if (players.length > 0) {
-    badge.style.display = 'inline';
-    countEl.textContent = players.length;
-  } else {
-    badge.style.display = 'none';
-  }
-
-  const list = document.getElementById('players-list');
-  if (players.length === 0) {
-    list.innerHTML = `<div class="no-players"><div style="font-size:2.5rem;margin-bottom:10px">📺</div><div>Nenhuma tela conectada</div><div style="font-size:.8rem;margin-top:6px">Abra o link acima em um monitor</div></div>`;
+  if (playersList.length === 0) {
+    listEl.innerHTML = '<div class="no-players">Nenhuma tela conectada</div>';
     return;
   }
 
-  list.innerHTML = players.map(p => `
+  listEl.innerHTML = playersList.map(p => {
+    const sConf = appData.screenConfigs?.[p.screen] || {};
+    const currentPlaylistId = sConf.playlistId || appData.activePlaylistId;
+    const currentOrient = sConf.orientation || appData.config.orientation;
+
+    return `
     <div class="player-card">
-      <div class="player-status">
-        <div class="status-dot"></div>
-        <div class="player-name">${p.screen || 'Tela'}</div>
+      <div class="player-status"><div class="status-dot"></div><div class="player-name">${p.screen}</div></div>
+      <div class="form-group">
+        <label class="form-label">Playlist</label>
+        <select class="form-select" onchange="updateScreenConfig('${p.screen}', this.value, null)">
+          ${appData.playlists.map(pl => `<option value="${pl.id}" ${pl.id === currentPlaylistId ? 'selected' : ''}>${pl.name}</option>`).join('')}
+        </select>
       </div>
-      <div class="player-detail">IP: ${p.ip || '—'}</div>
-      <div class="player-detail">Conectada: ${new Date(p.connectedAt).toLocaleString('pt-BR')}</div>
-    </div>
-  `).join('');
+      <div class="form-group">
+        <label class="form-label">Orientação</label>
+        <select class="form-select" onchange="updateScreenConfig('${p.screen}', null, this.value)">
+          <option value="landscape" ${currentOrient === 'landscape' ? 'selected' : ''}>Horizontal</option>
+          <option value="portrait" ${currentOrient === 'portrait' ? 'selected' : ''}>Vertical</option>
+        </select>
+      </div>
+      <div class="player-detail">IP: ${p.ip}</div>
+    </div>`;
+  }).join('');
+}
+
+// Adicione esta nova função:
+async function updateScreenConfig(screenName, playlistId, orientation) {
+  const current = appData.screenConfigs?.[screenName] || {};
+  const payload = {
+    screenName,
+    playlistId: playlistId || current.playlistId || appData.activePlaylistId,
+    orientation: orientation || current.orientation || appData.config.orientation
+  };
+
+  await fetch(`${API}/api/screens/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  
+  // Atualiza dados locais para refletir a mudança no UI
+  if(!appData.screenConfigs) appData.screenConfigs = {};
+  appData.screenConfigs[screenName] = { playlistId: payload.playlistId, orientation: payload.orientation };
+  toast('Configuração da tela atualizada!');
 }
 
 // ═══════════════════════════════════════
