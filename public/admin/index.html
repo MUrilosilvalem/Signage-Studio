@@ -188,6 +188,59 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .modal-title { font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:22px; }
 .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:22px; }
 
+
+/* ── Image Editor ── */
+#img-editor-modal .modal {
+  width: min(900px, 96vw);
+  max-height: 95vh;
+}
+.editor-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  border: 1px solid var(--border);
+}
+.editor-canvas-wrap:active { cursor: grabbing; }
+#editor-canvas { display: block; width: 100%; height: 100%; }
+.editor-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+.editor-ctrl-group { display: flex; flex-direction: column; gap: 6px; }
+.editor-ctrl-label {
+  font-size: .68rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted);
+}
+.editor-slider {
+  -webkit-appearance: none;
+  width: 100%; height: 4px;
+  background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
+}
+.editor-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,229,255,.4);
+}
+.editor-fit-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.editor-fit-btn {
+  flex: 1; padding: 7px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); font-family: 'Barlow', sans-serif; font-size: .78rem;
+  cursor: pointer; transition: all .18s; white-space: nowrap;
+}
+.editor-fit-btn:hover { border-color: var(--accent); color: var(--accent); }
+.editor-fit-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.editor-save-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; align-items: center; }
+.editor-info { font-size: .72rem; color: var(--muted); }
+
 #toast {
   position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
   background:var(--surface2); border:1px solid var(--border); color:var(--text);
@@ -288,6 +341,46 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
               <div class="form-group">
                 <label class="form-label">Rótulo</label>
                 <input class="form-input" id="ticker-label-input" placeholder="AVISOS" oninput="saveTickerConfig()">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Tamanho da fonte</label>
+                  <select class="form-select" id="ticker-font-size" onchange="saveTickerConfig()">
+                    <option value="0.75rem">Pequeno</option>
+                    <option value="0.9rem" selected>Médio</option>
+                    <option value="1.1rem">Grande</option>
+                    <option value="1.4rem">Extra grande</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Velocidade</label>
+                  <select class="form-select" id="ticker-speed" onchange="saveTickerConfig()">
+                    <option value="60">Lenta</option>
+                    <option value="30" selected>Normal</option>
+                    <option value="18">Rápida</option>
+                    <option value="10">Muito rápida</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Altura da barra</label>
+                  <select class="form-select" id="ticker-height" onchange="saveTickerConfig()">
+                    <option value="36px">Compacta</option>
+                    <option value="44px" selected>Normal</option>
+                    <option value="56px">Grande</option>
+                    <option value="70px">Extra grande</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Fonte</label>
+                  <select class="form-select" id="ticker-font-family" onchange="saveTickerConfig()">
+                    <option value="'Barlow', sans-serif" selected>Barlow (padrão)</option>
+                    <option value="'Barlow Condensed', sans-serif">Barlow Condensed</option>
+                    <option value="monospace">Monospace</option>
+                    <option value="serif">Serif</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -505,6 +598,55 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeNewPlaylistModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="createNewPlaylist()">Criar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Image Editor Modal -->
+<div class="modal-overlay" id="img-editor-modal">
+  <div class="modal" style="width:min(900px,96vw);max-height:95vh;overflow-y:auto">
+    <div class="modal-title">✂️ Ajustar Imagem — 16:9</div>
+
+    <div class="editor-canvas-wrap" id="editor-canvas-wrap">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+
+    <div class="editor-fit-btns">
+      <button class="editor-fit-btn active" onclick="editorFit('contain')" id="fit-contain">⬜ Conter (barras)</button>
+      <button class="editor-fit-btn" onclick="editorFit('cover')" id="fit-cover">🔲 Preencher (cortar)</button>
+      <button class="editor-fit-btn" onclick="editorFit('stretch')" id="fit-stretch">↔️ Esticar</button>
+      <button class="editor-fit-btn" onclick="editorFit('blur-bg')" id="fit-blur-bg">🌫️ Fundo desfocado</button>
+    </div>
+
+    <div class="editor-controls">
+      <div class="editor-ctrl-group">
+        <div class="editor-ctrl-label">Zoom <span id="zoom-val">100%</span></div>
+        <input type="range" class="editor-slider" id="editor-zoom" min="10" max="300" value="100" oninput="editorUpdate()">
+      </div>
+      <div class="editor-ctrl-group">
+        <div class="editor-ctrl-label">Brilho <span id="brightness-val">100%</span></div>
+        <input type="range" class="editor-slider" id="editor-brightness" min="20" max="200" value="100" oninput="editorUpdate()">
+      </div>
+      <div class="editor-ctrl-group">
+        <div class="editor-ctrl-label">Contraste <span id="contrast-val">100%</span></div>
+        <input type="range" class="editor-slider" id="editor-contrast" min="20" max="200" value="100" oninput="editorUpdate()">
+      </div>
+      <div class="editor-ctrl-group">
+        <div class="editor-ctrl-label">Saturação <span id="saturation-val">100%</span></div>
+        <input type="range" class="editor-slider" id="editor-saturation" min="0" max="300" value="100" oninput="editorUpdate()">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="editor-info" id="editor-info">Arraste para reposicionar · Scroll para zoom</span>
+      <button class="btn btn-ghost btn-sm" onclick="editorReset()">↺ Resetar</button>
+    </div>
+
+    <div class="editor-save-row">
+      <span class="editor-info" id="editor-save-info"></span>
+      <button class="btn btn-ghost" onclick="closeImageEditor()">Cancelar</button>
+      <button class="btn btn-primary" onclick="editorSaveAndReplace()">💾 Salvar e substituir</button>
     </div>
   </div>
 </div>
@@ -888,6 +1030,7 @@ function renderMedia() {
       </div>
       <div class="media-actions">
         <button class="btn btn-ghost btn-sm" style="flex:1" onclick="addMediaToPlaylist('${m.id}')">+ Playlist</button>
+        ${m.type === 'image' ? `<button class="btn-icon" title="Ajustar 16:9" onclick="openImageEditor('${m.id}')">✂️</button>` : ''}
         <button class="btn-icon danger" onclick="deleteMedia('${m.id}')">🗑</button>
       </div>
     </div>`;
@@ -1070,6 +1213,10 @@ function applyConfigToUI() {
   document.getElementById('ticker-enabled').checked = !!c.tickerEnabled;
   document.getElementById('ticker-text').value = c.tickerText || '';
   document.getElementById('ticker-label-input').value = c.tickerLabel || 'AVISOS';
+  document.getElementById('ticker-font-size').value = c.tickerFontSize || '0.9rem';
+  document.getElementById('ticker-speed').value = c.tickerSpeed || '30';
+  document.getElementById('ticker-height').value = c.tickerHeight || '44px';
+  document.getElementById('ticker-font-family').value = c.tickerFontFamily || "'Barlow', sans-serif";
   document.getElementById('header-logo').innerHTML = `${escHtml(c.logo || 'Signage')}<span> Studio</span>`;
 }
 
@@ -1104,7 +1251,11 @@ async function saveTickerConfig() {
     ...appData.config,
     tickerEnabled: document.getElementById('ticker-enabled').checked,
     tickerText: document.getElementById('ticker-text').value,
-    tickerLabel: document.getElementById('ticker-label-input').value || 'AVISOS'
+    tickerLabel: document.getElementById('ticker-label-input').value || 'AVISOS',
+    tickerFontSize: document.getElementById('ticker-font-size').value,
+    tickerSpeed: document.getElementById('ticker-speed').value,
+    tickerHeight: document.getElementById('ticker-height').value,
+    tickerFontFamily: document.getElementById('ticker-font-family').value
   };
   appData.config = cfg;
   try {
@@ -1153,6 +1304,271 @@ function toast(msg) {
   el._t = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
+
+// ═══════════════════════════════════════
+// IMAGE EDITOR 16:9
+// ═══════════════════════════════════════
+const editor = {
+  mediaId: null,
+  img: null,
+  canvas: null,
+  ctx: null,
+  // transform state
+  x: 0, y: 0, zoom: 1,
+  fitMode: 'contain',
+  dragging: false,
+  lastX: 0, lastY: 0,
+  // output size
+  W: 1920, H: 1080
+};
+
+function openImageEditor(mediaId) {
+  const m = appData.media.find(x => x.id === mediaId);
+  if (!m || m.type !== 'image') return;
+
+  editor.mediaId = mediaId;
+  editor.fitMode = 'contain';
+
+  const modal = document.getElementById('img-editor-modal');
+  modal.classList.add('open');
+
+  // Reset controls
+  document.getElementById('editor-zoom').value = 100;
+  document.getElementById('editor-brightness').value = 100;
+  document.getElementById('editor-contrast').value = 100;
+  document.getElementById('editor-saturation').value = 100;
+  document.getElementById('editor-save-info').textContent = '';
+  updateEditorLabels();
+
+  ['contain','cover','stretch','blur-bg'].forEach(f => {
+    document.getElementById('fit-' + f).classList.toggle('active', f === 'contain');
+  });
+
+  // Setup canvas
+  editor.canvas = document.getElementById('editor-canvas');
+  editor.ctx = editor.canvas.getContext('2d');
+  editor.canvas.width = editor.W;
+  editor.canvas.height = editor.H;
+
+  // Load image
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    editor.img = img;
+    editorAutoFit();
+    editorDraw();
+  };
+  img.onerror = () => toast('❌ Erro ao carregar imagem');
+  img.src = m.url + '?t=' + Date.now(); // cache-bust
+
+  // Setup drag
+  setupEditorDrag();
+}
+
+function editorAutoFit() {
+  const img = editor.img;
+  const scaleX = editor.W / img.naturalWidth;
+  const scaleY = editor.H / img.naturalHeight;
+
+  if (editor.fitMode === 'contain') {
+    editor.zoom = Math.min(scaleX, scaleY);
+  } else if (editor.fitMode === 'cover' || editor.fitMode === 'blur-bg') {
+    editor.zoom = Math.max(scaleX, scaleY);
+  } else if (editor.fitMode === 'stretch') {
+    editor.zoom = 1; // handled separately in draw
+  }
+
+  // Center
+  editor.x = (editor.W - img.naturalWidth * editor.zoom) / 2;
+  editor.y = (editor.H - img.naturalHeight * editor.zoom) / 2;
+  document.getElementById('editor-zoom').value = Math.round(editor.zoom * 100);
+  updateEditorLabels();
+}
+
+function editorFit(mode) {
+  editor.fitMode = mode;
+  ['contain','cover','stretch','blur-bg'].forEach(f => {
+    document.getElementById('fit-' + f).classList.toggle('active', f === mode);
+  });
+  editorAutoFit();
+  editorDraw();
+}
+
+function editorUpdate() {
+  editor.zoom = document.getElementById('editor-zoom').value / 100;
+  updateEditorLabels();
+  editorDraw();
+}
+
+function updateEditorLabels() {
+  document.getElementById('zoom-val').textContent = Math.round(editor.zoom * 100) + '%';
+  document.getElementById('brightness-val').textContent = document.getElementById('editor-brightness').value + '%';
+  document.getElementById('contrast-val').textContent = document.getElementById('editor-contrast').value + '%';
+  document.getElementById('saturation-val').textContent = document.getElementById('editor-saturation').value + '%';
+}
+
+function editorDraw() {
+  if (!editor.img || !editor.ctx) return;
+  const ctx = editor.ctx;
+  const W = editor.W, H = editor.H;
+  const img = editor.img;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Apply CSS filters via offscreen
+  const brightness = document.getElementById('editor-brightness').value;
+  const contrast = document.getElementById('editor-contrast').value;
+  const saturation = document.getElementById('editor-saturation').value;
+  ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+
+  if (editor.fitMode === 'blur-bg') {
+    // Draw blurred full background
+    ctx.save();
+    ctx.filter = `blur(30px) brightness(${brightness * 0.6}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    const bgScale = Math.max(W / img.naturalWidth, H / img.naturalHeight) * 1.1;
+    const bgX = (W - img.naturalWidth * bgScale) / 2;
+    const bgY = (H - img.naturalHeight * bgScale) / 2;
+    ctx.drawImage(img, bgX, bgY, img.naturalWidth * bgScale, img.naturalHeight * bgScale);
+    ctx.restore();
+    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+  } else if (editor.fitMode === 'stretch') {
+    ctx.drawImage(img, 0, 0, W, H);
+    ctx.filter = 'none';
+    return;
+  } else {
+    // Black background
+    ctx.filter = 'none';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+  }
+
+  const drawW = img.naturalWidth * editor.zoom;
+  const drawH = img.naturalHeight * editor.zoom;
+  ctx.drawImage(img, editor.x, editor.y, drawW, drawH);
+  ctx.filter = 'none';
+}
+
+function editorReset() {
+  document.getElementById('editor-zoom').value = 100;
+  document.getElementById('editor-brightness').value = 100;
+  document.getElementById('editor-contrast').value = 100;
+  document.getElementById('editor-saturation').value = 100;
+  updateEditorLabels();
+  editorAutoFit();
+  editorDraw();
+}
+
+function setupEditorDrag() {
+  const wrap = document.getElementById('editor-canvas-wrap');
+
+  // Remove previous listeners by cloning
+  const newWrap = wrap.cloneNode(true);
+  newWrap.appendChild(editor.canvas);
+  wrap.parentNode.replaceChild(newWrap, wrap);
+
+  newWrap.addEventListener('mousedown', e => {
+    if (editor.fitMode === 'stretch') return;
+    editor.dragging = true;
+    editor.lastX = e.clientX;
+    editor.lastY = e.clientY;
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!editor.dragging) return;
+    const scale = editor.W / newWrap.offsetWidth;
+    editor.x += (e.clientX - editor.lastX) * scale;
+    editor.y += (e.clientY - editor.lastY) * scale;
+    editor.lastX = e.clientX;
+    editor.lastY = e.clientY;
+    editorDraw();
+  });
+
+  window.addEventListener('mouseup', () => { editor.dragging = false; });
+
+  // Touch drag
+  newWrap.addEventListener('touchstart', e => {
+    if (editor.fitMode === 'stretch') return;
+    editor.dragging = true;
+    editor.lastX = e.touches[0].clientX;
+    editor.lastY = e.touches[0].clientY;
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('touchmove', e => {
+    if (!editor.dragging) return;
+    const scale = editor.W / newWrap.offsetWidth;
+    editor.x += (e.touches[0].clientX - editor.lastX) * scale;
+    editor.y += (e.touches[0].clientY - editor.lastY) * scale;
+    editor.lastX = e.touches[0].clientX;
+    editor.lastY = e.touches[0].clientY;
+    editorDraw();
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => { editor.dragging = false; });
+
+  // Scroll to zoom
+  newWrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (editor.fitMode === 'stretch') return;
+    const rect = newWrap.getBoundingClientRect();
+    const scale = editor.W / rect.width;
+    const mx = (e.clientX - rect.left) * scale;
+    const my = (e.clientY - rect.top) * scale;
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.1, Math.min(3, editor.zoom * delta));
+    // Zoom toward cursor
+    editor.x = mx - (mx - editor.x) * (newZoom / editor.zoom);
+    editor.y = my - (my - editor.y) * (newZoom / editor.zoom);
+    editor.zoom = newZoom;
+    document.getElementById('editor-zoom').value = Math.round(editor.zoom * 100);
+    updateEditorLabels();
+    editorDraw();
+  }, { passive: false });
+}
+
+async function editorSaveAndReplace() {
+  const infoEl = document.getElementById('editor-save-info');
+  infoEl.textContent = '⏳ Salvando...';
+
+  try {
+    // Export canvas to blob
+    const blob = await new Promise(resolve =>
+      editor.canvas.toBlob(resolve, 'image/jpeg', 0.92)
+    );
+
+    // Find original media item to get extension/name
+    const m = appData.media.find(x => x.id === editor.mediaId);
+    const filename = (m?.originalName || 'imagem').replace(/\.[^.]+$/, '') + '_16x9.jpg';
+
+    const fd = new FormData();
+    fd.append('file', blob, filename);
+
+    const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Upload falhou');
+
+    const newItem = await res.json();
+    appData.media.push(newItem);
+
+    renderMedia();
+    updateStats();
+    infoEl.textContent = '✅ Salvo na biblioteca!';
+    toast('✅ Imagem 16:9 salva na biblioteca!');
+    setTimeout(closeImageEditor, 1200);
+  } catch(e) {
+    infoEl.textContent = '❌ Erro ao salvar';
+    toast('❌ Erro ao salvar imagem');
+    console.error(e);
+  }
+}
+
+function closeImageEditor() {
+  document.getElementById('img-editor-modal').classList.remove('open');
+  editor.img = null;
+  editor.mediaId = null;
+}
+
 // ═══════════════════════════════════════
 // QR CODE (sem dependência externa)
 // ═══════════════════════════════════════
@@ -1179,6 +1595,7 @@ uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
 uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag-over'); uploadFiles(e.dataTransfer.files); });
 
 document.getElementById('add-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('img-editor-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeImageEditor(); });
 document.getElementById('new-playlist-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeNewPlaylistModal(); });
 
 document.addEventListener('keydown', e => {
