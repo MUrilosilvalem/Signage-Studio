@@ -125,9 +125,20 @@ app.get('/api/players', (req, res) => {
 app.post('/api/config', (req, res) => {
   appData.config = { ...appData.config, ...req.body };
   saveData(appData);
-  broadcastAll({ type: 'config', payload: appData.config });
+  // Envia para cada tela seu payload correto, respeitando orientacao individual
+  players.forEach(p => {
+    if (p.ws.readyState === WebSocket.OPEN) {
+      p.ws.send(JSON.stringify({ type: 'init', payload: buildInitPayload(p.info.screen) }));
+    }
+  });
   res.json({ ok: true });
 });
+
+
+
+
+
+
 
 // ═══════════════════════════════════════
 // API — CONFIGURAÇÃO POR TELA
