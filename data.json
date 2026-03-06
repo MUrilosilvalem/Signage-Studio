@@ -1,0 +1,25 @@
+{
+  "playlists": [
+    {
+      "id": "3686572eca14852b",
+      "name": "Playlist Principal",
+      "slides": []
+    }
+  ],
+  "activePlaylistId": "3686572eca14852b",
+  "config": {
+    "logo": "MINHA EMPRESA",
+    "accent": "#00e5ff",
+    "duration": 10,
+    "loop": true,
+    "transition": "fade",
+    "showHud": true,
+    "showDots": true,
+    "fitCover": false,
+    "tickerEnabled": false,
+    "tickerText": "",
+    "tickerLabel": "AVISOS",
+    "orientation": "landscape"
+  },
+  "media": []
+}

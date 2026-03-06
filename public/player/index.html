@@ -17,6 +17,18 @@ body {
   color:#fff;
 }
 
+body.portrait {
+  width: 100vh;
+  height: 100vw;
+  transform: rotate(90deg);
+  transform-origin: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: calc(-100vw / 2);
+  margin-left: calc(-100vh / 2);
+}
+
 /* ── Slides ── */
 #stage { position:relative; width:100%; height:100%; }
 
@@ -191,6 +203,20 @@ function promptName() {
 }
 
 // ════════════════════════════════════
+//  ORIENTATION
+// ════════════════════════════════════
+function applyOrientation() {
+  const orientation = config.orientation || 'landscape';
+  const body = document.body;
+  
+  if (orientation === 'portrait') {
+    body.classList.add('portrait');
+  } else {
+    body.classList.remove('portrait');
+  }
+}
+
+// ════════════════════════════════════
 //  WEBSOCKET
 // ════════════════════════════════════
 function connectWS() {
@@ -252,6 +278,9 @@ function applyConfig() {
   } else {
     ticker.style.display = 'none';
   }
+
+  // Orientation
+  applyOrientation();
 }
 
 // ════════════════════════════════════

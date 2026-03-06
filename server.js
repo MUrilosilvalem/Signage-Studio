@@ -21,7 +21,14 @@ if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 function loadData() {
   if (!fs.existsSync(DATA_FILE)) {
     const defaults = {
-      playlist: [],
+      playlists: [
+        {
+          id: crypto.randomBytes(8).toString('hex'),
+          name: 'Playlist Principal',
+          slides: []
+        }
+      ],
+      activePlaylistId: null, // Will be set to first playlist ID
       config: {
         logo: 'MINHA EMPRESA',
         accent: '#00e5ff',
@@ -33,14 +40,41 @@ function loadData() {
         fitCover: false,
         tickerEnabled: false,
         tickerText: '',
-        tickerLabel: 'AVISOS'
+        tickerLabel: 'AVISOS',
+        orientation: 'landscape' // 'landscape' or 'portrait'
       },
       media: []
     };
+    // Set active playlist to first one
+    defaults.activePlaylistId = defaults.playlists[0].id;
     fs.writeFileSync(DATA_FILE, JSON.stringify(defaults, null, 2));
     return defaults;
   }
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  // Migrate old format if needed
+  if (data.playlist && !data.playlists) {
+    data.playlists = [
+      {
+        id: crypto.randomBytes(8).toString('hex'),
+        name: 'Playlist Principal',
+        slides: data.playlist || []
+      }
+    ];
+    data.activePlaylistId = data.playlists[0].id;
+    delete data.playlist;
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  }
+  // Ensure activePlaylistId is set
+  if (!data.activePlaylistId && data.playlists && data.playlists.length > 0) {
+    data.activePlaylistId = data.playlists[0].id;
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  }
+  // Ensure orientation config exists
+  if (!data.config.orientation) {
+    data.config.orientation = 'landscape';
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  }
+  return data;
 }
 
 function saveData(data) {
@@ -93,19 +127,87 @@ app.get('/', (req, res) => res.redirect('/admin'));
 // Get all data
 app.get('/api/data', (req, res) => res.json(appData));
 
+// Get active playlist
+app.get('/api/playlist', (req, res) => {
+  const activePlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+  res.json(activePlaylist || { id: null, name: '', slides: [] });
+});
+
+// Get all playlists (metadata only)
+app.get('/api/playlists', (req, res) => {
+  const playlists = appData.playlists.map(p => ({
+    id: p.id,
+    name: p.name,
+    slideCount: p.slides.length
+  }));
+  res.json({ playlists, activePlaylistId: appData.activePlaylistId });
+});
+
+// Create new playlist
+app.post('/api/playlists', (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'Name required' });
+  const newPlaylist = {
+    id: crypto.randomBytes(8).toString('hex'),
+    name,
+    slides: []
+  };
+  appData.playlists.push(newPlaylist);
+  saveData(appData);
+  res.json(newPlaylist);
+});
+
+// Update playlist name
+app.patch('/api/playlists/:id', (req, res) => {
+  const { name } = req.body;
+  const playlist = appData.playlists.find(p => p.id === req.params.id);
+  if (!playlist) return res.status(404).json({ error: 'Not found' });
+  if (name) playlist.name = name;
+  saveData(appData);
+  res.json(playlist);
+});
+
+// Delete playlist
+app.delete('/api/playlists/:id', (req, res) => {
+  const idx = appData.playlists.findIndex(p => p.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (appData.playlists.length === 1) return res.status(400).json({ error: 'Cannot delete last playlist' });
+  
+  appData.playlists.splice(idx, 1);
+  // If deleted playlist was active, switch to first
+  if (appData.activePlaylistId === req.params.id) {
+    appData.activePlaylistId = appData.playlists[0].id;
+    broadcast({ type: 'playlist', payload: appData.playlists.find(p => p.id === appData.activePlaylistId).slides });
+  }
+  saveData(appData);
+  res.json({ ok: true });
+});
+
+// Set active playlist
+app.post('/api/playlists/:id/activate', (req, res) => {
+  const playlist = appData.playlists.find(p => p.id === req.params.id);
+  if (!playlist) return res.status(404).json({ error: 'Not found' });
+  appData.activePlaylistId = req.params.id;
+  saveData(appData);
+  broadcast({ type: 'playlist', payload: playlist.slides });
+  res.json({ ok: true });
+});
+
+// Update active playlist slides
+app.post('/api/playlist/slides', (req, res) => {
+  const playlist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+  if (!playlist) return res.status(404).json({ error: 'No active playlist' });
+  playlist.slides = req.body;
+  saveData(appData);
+  broadcast({ type: 'playlist', payload: playlist.slides });
+  res.json({ ok: true });
+});
+
 // Update config
 app.post('/api/config', (req, res) => {
   appData.config = { ...appData.config, ...req.body };
   saveData(appData);
   broadcast({ type: 'config', payload: appData.config });
-  res.json({ ok: true });
-});
-
-// Update playlist
-app.post('/api/playlist', (req, res) => {
-  appData.playlist = req.body;
-  saveData(appData);
-  broadcast({ type: 'playlist', payload: appData.playlist });
   res.json({ ok: true });
 });
 
@@ -134,10 +236,15 @@ app.delete('/api/media/:id', (req, res) => {
   const filePath = path.join(UPLOADS_DIR, item.filename);
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   appData.media.splice(idx, 1);
-  // Remove from playlist too
-  appData.playlist = appData.playlist.filter(s => s.mediaId !== item.id);
+  // Remove from all playlists
+  appData.playlists.forEach(p => {
+    p.slides = p.slides.filter(s => s.mediaId !== item.id);
+  });
   saveData(appData);
-  broadcast({ type: 'playlist', payload: appData.playlist });
+  const activePlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+  if (activePlaylist) {
+    broadcast({ type: 'playlist', payload: activePlaylist.slides });
+  }
   res.json({ ok: true });
 });
 
@@ -157,7 +264,12 @@ wss.on('connection', (ws, req) => {
   console.log(`[+] Player connected: ${id} from ${ip}`);
 
   // Send current state immediately
-  ws.send(JSON.stringify({ type: 'init', payload: appData }));
+  const activePlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+  const initPayload = {
+    ...appData,
+    playlist: activePlaylist ? activePlaylist.slides : []
+  };
+  ws.send(JSON.stringify({ type: 'init', payload: initPayload }));
 
   ws.on('message', raw => {
     try {

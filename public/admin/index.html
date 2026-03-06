@@ -184,7 +184,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   display:flex; align-items:center; gap:10px;
   background:var(--bg); border:1px solid var(--border); border-radius:7px; padding:10px 14px;
 }
-.player-url-text { font-family:monospace; font-size:.9rem; color:var(--accent); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.player-url-text { font-family:monospace; font-size:.9rem; color:var(--accent); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .player-url-hint { font-size:.78rem; color:var(--muted); margin-top:8px; }
 
 /* ── QR placeholder ── */
@@ -206,6 +206,13 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .upload-progress { margin-top:10px; display:none; }
 .progress-bar-wrap { height:4px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:6px; }
 .progress-bar-fill { height:100%; background:var(--accent); width:0; transition:width .2s; }
+
+/* ── Playlists selector ── */
+.playlists-selector { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.playlist-btn { padding:8px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; font-family:'Barlow',sans-serif; transition:all .18s; }
+.playlist-btn:hover { border-color:var(--accent); color:var(--text); }
+.playlist-btn.active { background:var(--accent); color:#000; border-color:var(--accent); }
+.playlist-btn.new { color:var(--accent); border-color:var(--accent); }
 
 /* scrollbar */
 ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -253,7 +260,16 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
     <!-- TAB PLAYLIST -->
     <div id="tab-playlist" class="tab-panel active">
       <div class="section-header">
-        <div class="section-title">Playlist</div>
+        <div class="section-title">Playlists</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="openNewPlaylistModal()">+ Nova</button>
+        </div>
+      </div>
+
+      <div class="playlists-selector" id="playlists-selector"></div>
+
+      <div class="section-header" style="margin-top:20px">
+        <div class="section-title" id="current-playlist-title">Playlist</div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-danger btn-sm" onclick="clearPlaylist()">🗑 Limpar</button>
           <button class="btn btn-primary btn-sm" onclick="openAddModal('image')">+ Adicionar slide</button>
@@ -431,6 +447,20 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         </div>
 
         <div class="card">
+          <div class="card-header">Orientação da Tela</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Modo de exibição</label>
+              <select class="form-select" id="cfg-orientation" onchange="saveConfig()">
+                <option value="landscape">🖥️ Paisagem (16:9)</option>
+                <option value="portrait">📱 Retrato (9:16)</option>
+              </select>
+            </div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:8px">A orientação será aplicada a todas as telas conectadas</div>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="card-header">Dados</div>
           <div class="card-body">
             <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Todos os arquivos ficam armazenados no servidor.</p>
@@ -497,15 +527,28 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
 </div>
 
+<!-- New Playlist Modal -->
+<div class="modal-overlay" id="new-playlist-modal">
+  <div class="modal">
+    <div class="modal-title">Nova Playlist</div>
+    <div class="form-group">
+      <label class="form-label">Nome da playlist</label>
+      <input class="form-input" id="new-playlist-name" placeholder="Ex: Recepção, Refeitório...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeNewPlaylistModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="createNewPlaylist()">Criar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <!-- Tiny QR generator (pure JS, no dependency) -->
 <script>
 // Minimal QR code generator
 (function(){
-  // We'll use a canvas-based approach with a simple URL display
   window.drawQR = function(canvas, text) {
-    // Simple visual placeholder - in production use a proper QR lib
     const ctx = canvas.getContext('2d');
     const s = canvas.width;
     ctx.fillStyle = '#fff';
@@ -525,13 +568,14 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
-let appData = { playlist: [], config: {}, media: [] };
+let appData = { playlists: [], activePlaylistId: null, config: {}, media: [] };
+let currentPlaylist = null;
 let modalType = 'image';
-let modalMediaId = null;   // selected from library
-let modalUploadedId = null; // just uploaded
+let modalMediaId = null;
+let modalUploadedId = null;
 let editingIdx = null;
 
-const API = '';  // same origin
+const API = '';
 
 // ═══════════════════════════════════════
 // INIT
@@ -547,9 +591,19 @@ async function init() {
 async function loadData() {
   const res = await fetch(`${API}/api/data`);
   appData = await res.json();
+  // Ensure we have at least one playlist
+  if (!appData.playlists || appData.playlists.length === 0) {
+    appData.playlists = [{ id: Date.now().toString(), name: 'Playlist Principal', slides: [] }];
+    appData.activePlaylistId = appData.playlists[0].id;
+  }
+  if (!appData.activePlaylistId) {
+    appData.activePlaylistId = appData.playlists[0].id;
+  }
+  currentPlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
 }
 
 function renderAll() {
+  renderPlaylists();
   renderPlaylist();
   renderMedia();
   applyConfigToUI();
@@ -565,6 +619,83 @@ function showTab(id, el) {
   document.getElementById(id).classList.add('active');
   if (el) el.classList.add('active');
   if (id === 'tab-players') loadPlayers();
+}
+
+// ═══════════════════════════════════════
+// PLAYLISTS
+// ═══════════════════════════════════════
+function renderPlaylists() {
+  const container = document.getElementById('playlists-selector');
+  container.innerHTML = appData.playlists.map(p => `
+    <button class="playlist-btn ${p.id === appData.activePlaylistId ? 'active' : ''}" 
+            onclick="switchPlaylist('${p.id}')" 
+            oncontextmenu="showPlaylistMenu(event, '${p.id}')">
+      ${p.name} (${p.slides.length})
+    </button>
+  `).join('');
+  container.innerHTML += `<button class="playlist-btn new" onclick="openNewPlaylistModal()">+ Nova</button>`;
+}
+
+function switchPlaylist(id) {
+  appData.activePlaylistId = id;
+  currentPlaylist = appData.playlists.find(p => p.id === id);
+  renderPlaylists();
+  renderPlaylist();
+  updateStats();
+  saveActivePlaylist();
+  broadcast({ type: 'playlist', payload: currentPlaylist.slides });
+}
+
+async function saveActivePlaylist() {
+  await fetch(`${API}/api/playlists/${appData.activePlaylistId}/activate`, { method: 'POST' });
+}
+
+function openNewPlaylistModal() {
+  document.getElementById('new-playlist-modal').classList.add('open');
+  document.getElementById('new-playlist-name').value = '';
+  document.getElementById('new-playlist-name').focus();
+}
+
+function closeNewPlaylistModal() {
+  document.getElementById('new-playlist-modal').classList.remove('open');
+}
+
+async function createNewPlaylist() {
+  const name = document.getElementById('new-playlist-name').value.trim();
+  if (!name) { toast('⚠️ Informe um nome para a playlist'); return; }
+  
+  const res = await fetch(`${API}/api/playlists`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  });
+  const newPlaylist = await res.json();
+  appData.playlists.push(newPlaylist);
+  switchPlaylist(newPlaylist.id);
+  closeNewPlaylistModal();
+  toast(`Playlist "${name}" criada!`);
+}
+
+function showPlaylistMenu(e, id) {
+  e.preventDefault();
+  if (appData.playlists.length === 1) {
+    toast('⚠️ Não é possível deletar a única playlist');
+    return;
+  }
+  if (confirm('Deletar esta playlist?')) {
+    deletePlaylist(id);
+  }
+}
+
+async function deletePlaylist(id) {
+  await fetch(`${API}/api/playlists/${id}`, { method: 'DELETE' });
+  appData.playlists = appData.playlists.filter(p => p.id !== id);
+  if (appData.activePlaylistId === id) {
+    appData.activePlaylistId = appData.playlists[0].id;
+  }
+  currentPlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+  renderAll();
+  toast('Playlist deletada');
 }
 
 // ═══════════════════════════════════════
@@ -621,13 +752,15 @@ async function loadPlayers() {
 // PLAYLIST
 // ═══════════════════════════════════════
 function renderPlaylist() {
+  if (!currentPlaylist) return;
+  document.getElementById('current-playlist-title').textContent = currentPlaylist.name;
   const body = document.getElementById('slide-list-body');
-  if (!appData.playlist.length) {
+  if (!currentPlaylist.slides.length) {
     body.innerHTML = `<div class="empty-list"><div class="ei">🎬</div><div>Playlist vazia</div></div>`;
     return;
   }
 
-  body.innerHTML = appData.playlist.map((item, i) => {
+  body.innerHTML = currentPlaylist.slides.map((item, i) => {
     const thumbHtml = item.type === 'image'
       ? `<img src="${item.url}" alt="">`
       : item.type === 'video' ? `<span>🎥</span>` : `<span>🌐</span>`;
@@ -661,33 +794,37 @@ function drop(e, targetIdx) {
   e.preventDefault();
   document.querySelectorAll('.slide-item').forEach(el => el.classList.remove('drag-over'));
   if (dragIdx === null || dragIdx === targetIdx) return;
-  const moved = appData.playlist.splice(dragIdx, 1)[0];
-  appData.playlist.splice(targetIdx, 0, moved);
+  const moved = currentPlaylist.slides.splice(dragIdx, 1)[0];
+  currentPlaylist.slides.splice(targetIdx, 0, moved);
   dragIdx = null;
   savePlaylist();
 }
 
 async function savePlaylist() {
-  await fetch(`${API}/api/playlist`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(appData.playlist) });
+  await fetch(`${API}/api/playlist/slides`, { 
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' }, 
+    body: JSON.stringify(currentPlaylist.slides) 
+  });
   renderPlaylist();
   updateStats();
   toast('Playlist atualizada nas telas!');
 }
 
 async function removeSlide(i) {
-  appData.playlist.splice(i, 1);
+  currentPlaylist.slides.splice(i, 1);
   await savePlaylist();
 }
 
 async function clearPlaylist() {
   if (!confirm('Limpar toda a playlist?')) return;
-  appData.playlist = [];
+  currentPlaylist.slides = [];
   await savePlaylist();
 }
 
 function editSlide(i) {
   editingIdx = i;
-  const item = appData.playlist[i];
+  const item = currentPlaylist.slides[i];
   openAddModal(item.type, item);
 }
 
@@ -750,7 +887,9 @@ async function deleteMedia(id) {
   if (!confirm('Remover arquivo?')) return;
   await fetch(`${API}/api/media/${id}`, { method:'DELETE' });
   appData.media = appData.media.filter(m => m.id !== id);
-  appData.playlist = appData.playlist.filter(s => s.mediaId !== id);
+  appData.playlists.forEach(p => {
+    p.slides = p.slides.filter(s => s.mediaId !== id);
+  });
   renderMedia();
   renderPlaylist();
   updateStats();
@@ -760,7 +899,7 @@ async function deleteMedia(id) {
 function addMediaToPlaylist(id) {
   const m = appData.media.find(x => x.id === id);
   if (!m) return;
-  appData.playlist.push({
+  currentPlaylist.slides.push({
     id: Date.now().toString(),
     type: m.type,
     mediaId: m.id,
@@ -813,7 +952,6 @@ function openAddModal(type, editItem) {
     document.getElementById('modal-title-text').textContent = type === 'video' ? '🎥 Adicionar Vídeo' : '🖼️ Adicionar Imagem';
     document.getElementById('modal-file-input').accept = type === 'video' ? 'video/*' : 'image/*';
 
-    // Show library items of same type
     const libs = appData.media.filter(m => m.type === type);
     if (libs.length) {
       mediaPicker.style.display = 'block';
@@ -873,19 +1011,18 @@ async function addSlide() {
     if (!mediaId && editingIdx === null) { toast('⚠️ Selecione ou envie um arquivo.'); return; }
     const m = appData.media.find(x => x.id === mediaId);
     if (editingIdx !== null && !m) {
-      // just update metadata
-      appData.playlist[editingIdx] = { ...appData.playlist[editingIdx], title, subtitle, duration };
+      currentPlaylist.slides[editingIdx] = { ...currentPlaylist.slides[editingIdx], title, subtitle, duration };
     } else if (m) {
       slide = { id: Date.now().toString(), type: m.type, mediaId: m.id, url: m.url, name: m.originalName, title, subtitle, duration };
     }
   }
 
   if (editingIdx !== null) {
-    if (slide) appData.playlist[editingIdx] = slide;
-    else { appData.playlist[editingIdx] = { ...appData.playlist[editingIdx], title, subtitle, duration }; }
+    if (slide) currentPlaylist.slides[editingIdx] = slide;
+    else { currentPlaylist.slides[editingIdx] = { ...currentPlaylist.slides[editingIdx], title, subtitle, duration }; }
     toast('Slide atualizado!');
   } else if (slide) {
-    appData.playlist.push(slide);
+    currentPlaylist.slides.push(slide);
     toast('Slide adicionado!');
   }
 
@@ -911,6 +1048,7 @@ function applyConfigToUI() {
   document.getElementById('cfg-showHud').checked = c.showHud !== false;
   document.getElementById('cfg-showDots').checked = c.showDots !== false;
   document.getElementById('cfg-fitCover').checked = !!c.fitCover;
+  document.getElementById('cfg-orientation').value = c.orientation || 'landscape';
   document.getElementById('ticker-enabled').checked = !!c.tickerEnabled;
   document.getElementById('ticker-text').value = c.tickerText || '';
   document.getElementById('ticker-label').value = c.tickerLabel || 'AVISOS';
@@ -927,6 +1065,7 @@ async function saveConfig() {
     showHud: document.getElementById('cfg-showHud').checked,
     showDots: document.getElementById('cfg-showDots').checked,
     fitCover: document.getElementById('cfg-fitCover').checked,
+    orientation: document.getElementById('cfg-orientation').value,
     tickerEnabled: document.getElementById('ticker-enabled').checked,
     tickerText: document.getElementById('ticker-text').value,
     tickerLabel: document.getElementById('ticker-label').value || 'AVISOS'
@@ -951,9 +1090,10 @@ async function saveTickerConfig() {
 // UTILS
 // ═══════════════════════════════════════
 function updateStats() {
-  document.getElementById('stat-slides').textContent = appData.playlist.length;
+  const slides = currentPlaylist ? currentPlaylist.slides.length : 0;
+  document.getElementById('stat-slides').textContent = slides;
   document.getElementById('stat-media').textContent = appData.media.length;
-  const dur = appData.playlist.reduce((s,i) => s + (i.duration || appData.config.duration || 10), 0);
+  const dur = currentPlaylist ? currentPlaylist.slides.reduce((s,i) => s + (i.duration || appData.config.duration || 10), 0) : 0;
   document.getElementById('stat-dur').textContent = dur >= 60 ? `${Math.floor(dur/60)}m${dur%60}s` : `${dur}s`;
 }
 
@@ -964,7 +1104,7 @@ function formatSize(b) {
 }
 
 function exportData() {
-  const blob = new Blob([JSON.stringify({ playlist: appData.playlist, config: appData.config }, null, 2)], { type:'application/json' });
+  const blob = new Blob([JSON.stringify({ playlists: appData.playlists, config: appData.config }, null, 2)], { type:'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `signage-${Date.now()}.json`; a.click();
 }
@@ -975,6 +1115,10 @@ function toast(msg) {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
+function broadcast(msg) {
+  // This is just for local feedback, actual broadcast happens on server
+}
+
 // Drag-over upload
 const uz = document.getElementById('upload-zone');
 uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
@@ -982,6 +1126,7 @@ uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
 uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag-over'); uploadFiles(e.dataTransfer.files); });
 
 document.getElementById('add-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('new-playlist-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeNewPlaylistModal(); });
 
 init();
 </script>
