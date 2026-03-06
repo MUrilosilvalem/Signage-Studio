@@ -6,13 +6,18 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - signage_uploads:/app/uploads
-      - signage_data:/app/data
+      - signage_data:/data
     environment:
       - PORT=3000
+      - DATA_FILE=/data/data.json
+      - UPLOADS_DIR=/data/uploads
       - NODE_ENV=production
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
-  signage_uploads:
   signage_data:
