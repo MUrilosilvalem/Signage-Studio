@@ -29,7 +29,6 @@ body.portrait {
   margin-left: calc(-100vh / 2);
 }
 
-/* ── Slides ── */
 #stage { position:relative; width:100%; height:100%; }
 
 .slide {
@@ -45,7 +44,6 @@ body.portrait {
 .slide iframe { width:100%; height:100%; border:none; }
 .slide.cover img, .slide.cover video { object-fit:cover; width:100%; height:100%; }
 
-/* Text overlay */
 .overlay {
   position:absolute; inset:0;
   display:flex; flex-direction:column; justify-content:flex-end;
@@ -66,7 +64,6 @@ body.portrait {
   max-width:65%; text-shadow:0 1px 8px rgba(0,0,0,.6);
 }
 
-/* ── HUD ── */
 #hud {
   position:fixed; top:0; left:0; right:0;
   display:flex; align-items:center; justify-content:space-between;
@@ -91,7 +88,6 @@ body.portrait {
   text-transform:uppercase; color:rgba(255,255,255,.7); text-align:right;
 }
 
-/* ── Progress bar ── */
 #progress {
   position:fixed; bottom:0; left:0;
   height:3px; background:var(--accent,#00e5ff);
@@ -99,7 +95,6 @@ body.portrait {
   z-index:80; transition:width linear;
 }
 
-/* ── Dots ── */
 #dots {
   position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
   display:flex; gap:7px; z-index:80;
@@ -114,7 +109,6 @@ body.portrait {
   transform:scale(1.5);
 }
 
-/* ── Ticker ── */
 #ticker {
   position:fixed; bottom:0; left:0; right:0;
   height:44px; background:rgba(0,0,0,.76);
@@ -137,7 +131,6 @@ body.portrait {
 }
 @keyframes ticker-anim { from { transform:translateX(0); } to { transform:translateX(-100%); } }
 
-/* ── Connection indicator ── */
 #conn {
   position:fixed; top:14px; right:14px; z-index:100;
   width:10px; height:10px; border-radius:50%;
@@ -146,7 +139,6 @@ body.portrait {
 #conn.ok { background:#00c896; box-shadow:0 0 8px #00c896; }
 #conn.warn { background:#ffb800; }
 
-/* ── Empty / loading ── */
 #empty {
   display:flex; flex-direction:column; align-items:center;
   justify-content:center; height:100vh; gap:18px; color:rgba(255,255,255,.3);
@@ -184,12 +176,11 @@ body.portrait {
 
 <script>
 // ════════════════════════════════════
-//  VARS
+//  ESTADO
 // ════════════════════════════════════
 let playlist = [];
 let config = {};
 let currentIdx = 0;
-let isPaused = false;
 let slideTimer = null;
 let ws = null;
 let wsReconnectTimer = null;
@@ -203,20 +194,6 @@ function promptName() {
 }
 
 // ════════════════════════════════════
-//  ORIENTATION
-// ════════════════════════════════════
-function applyOrientation() {
-  const orientation = config.orientation || 'landscape';
-  const body = document.body;
-  
-  if (orientation === 'portrait') {
-    body.classList.add('portrait');
-  } else {
-    body.classList.remove('portrait');
-  }
-}
-
-// ════════════════════════════════════
 //  WEBSOCKET
 // ════════════════════════════════════
 function connectWS() {
@@ -225,41 +202,37 @@ function connectWS() {
 
   ws.onopen = () => {
     document.getElementById('conn').className = 'ok';
-    ws.send(JSON.stringify({ type:'identify', screen: SCREEN_NAME }));
     clearTimeout(wsReconnectTimer);
+    ws.send(JSON.stringify({ type: 'identify', screen: SCREEN_NAME }));
   };
 
-  // Localize o evento ws.onmessage e garanta que ele limpa e reinicia:
-ws.onmessage = e => {
-  const msg = JSON.parse(e.data);
-  if (msg.type === 'init' || msg.type === 'playlist') {
-    // Se for init, o payload contém config e playlist customizados para ESTA tela
-    playlist = msg.payload.playlist || [];
-    config = msg.payload.config || {};
-    
-    // Aplica orientação customizada
-    applyConfig(); 
-    
-    // Reinicia os slides para a nova playlist vinculada
-    restartPlayer(); 
-  } else if (msg.type === 'config') {
-    config = { ...config, ...msg.payload };
-    applyConfig();
-  }
-};
+  ws.onmessage = e => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'init' || msg.type === 'playlist') {
+        // Recebe config e playlist já personalizados para esta tela
+        playlist = msg.payload.playlist || [];
+        config = msg.payload.config || {};
+        applyConfig();
+        restartPlayer();
+      } else if (msg.type === 'config') {
+        config = { ...config, ...msg.payload };
+        applyConfig();
+      }
+    } catch (err) {
+      console.error('WS parse error:', err);
+    }
+  };
 
-// Certifique-se que applyConfig use a config local (recebida do servidor):
-function applyConfig() {
-  const c = config;
-  document.getElementById('hud-logo').textContent = c.logo || 'SIGNAGE';
-  document.documentElement.style.setProperty('--accent', c.accent || '#00e5ff');
-  
-  // Aplica a classe de orientação baseada na config customizada
-  const body = document.body;
-  if (c.orientation === 'portrait') body.classList.add('portrait');
-  else body.classList.remove('portrait');
-  
-  // ... (restante da lógica de HUD e Ticker)
+  ws.onclose = () => {
+    document.getElementById('conn').className = 'warn';
+    wsReconnectTimer = setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = () => {
+    document.getElementById('conn').className = 'warn';
+    ws.close();
+  };
 }
 
 // ════════════════════════════════════
@@ -267,18 +240,24 @@ function applyConfig() {
 // ════════════════════════════════════
 function applyConfig() {
   const c = config;
+
   document.getElementById('hud-logo').textContent = c.logo || 'SIGNAGE';
   document.documentElement.style.setProperty('--accent', c.accent || '#00e5ff');
 
-  const hud = document.getElementById('hud');
-  hud.classList.toggle('hidden', !c.showHud);
+  document.getElementById('hud').classList.toggle('hidden', !c.showHud);
   document.getElementById('dots').style.display = c.showDots ? 'flex' : 'none';
+
+  // Orientação individual por tela
+  if (c.orientation === 'portrait') {
+    document.body.classList.add('portrait');
+  } else {
+    document.body.classList.remove('portrait');
+  }
 
   // Ticker
   const ticker = document.getElementById('ticker');
   if (c.tickerEnabled && c.tickerText) {
     ticker.style.display = 'flex';
-    ticker.style.backgroundColor = `rgba(0,0,0,.76)`;
     document.getElementById('ticker-label').textContent = c.tickerLabel || 'AVISOS';
     document.getElementById('ticker-label').style.background = c.accent || '#00e5ff';
     const t = c.tickerText;
@@ -286,28 +265,21 @@ function applyConfig() {
   } else {
     ticker.style.display = 'none';
   }
-
-  // Orientation
-  applyOrientation();
 }
 
 // ════════════════════════════════════
 //  PLAYER
 // ════════════════════════════════════
-function startPlayer() {
-  document.getElementById('empty').style.display = 'none';
-  buildSlides();
-  showSlide(0);
-}
-
 function restartPlayer() {
   clearTimeout(slideTimer);
   document.querySelectorAll('.slide').forEach(s => s.remove());
+
   if (!playlist.length) {
     document.getElementById('empty').style.display = 'flex';
     document.getElementById('dots').innerHTML = '';
     return;
   }
+
   document.getElementById('empty').style.display = 'none';
   buildSlides();
   showSlide(0);
@@ -317,7 +289,7 @@ function buildSlides() {
   const stage = document.getElementById('stage');
   stage.querySelectorAll('.slide').forEach(s => s.remove());
 
-  playlist.forEach((item, i) => {
+  playlist.forEach(item => {
     const slide = document.createElement('div');
     slide.className = 'slide' + (config.fitCover ? ' cover' : '');
     if (config.transition === 'cut') slide.classList.add('no-fade');
@@ -326,14 +298,16 @@ function buildSlides() {
       const img = document.createElement('img');
       img.src = item.url;
       slide.appendChild(img);
+
     } else if (item.type === 'video') {
       const vid = document.createElement('video');
       vid.src = item.url;
-      // Removido o muted para permitir áudio.
-      // Nota: O navegador pode bloquear o autoplay com áudio sem interação prévia.
-      // O player já solicita um clique inicial para fullscreen, o que libera o áudio.
-      vid.muted = false; vid.playsInline = true; vid.preload = 'auto';
+      // muted=false permite áudio; o clique inicial (fullscreen) libera autoplay com som
+      vid.muted = false;
+      vid.playsInline = true;
+      vid.preload = 'auto';
       slide.appendChild(vid);
+
     } else if (item.type === 'url') {
       const frame = document.createElement('iframe');
       frame.src = item.url;
@@ -345,8 +319,18 @@ function buildSlides() {
     if (item.title || item.subtitle) {
       const ov = document.createElement('div');
       ov.className = 'overlay';
-      if (item.title) { const t = document.createElement('div'); t.className = 'overlay-title'; t.textContent = item.title; ov.appendChild(t); }
-      if (item.subtitle) { const s = document.createElement('div'); s.className = 'overlay-sub'; s.textContent = item.subtitle; ov.appendChild(s); }
+      if (item.title) {
+        const t = document.createElement('div');
+        t.className = 'overlay-title';
+        t.textContent = item.title;
+        ov.appendChild(t);
+      }
+      if (item.subtitle) {
+        const s = document.createElement('div');
+        s.className = 'overlay-sub';
+        s.textContent = item.subtitle;
+        ov.appendChild(s);
+      }
       slide.appendChild(ov);
     }
 
@@ -364,6 +348,7 @@ function showSlide(idx) {
   slides.forEach(s => s.classList.remove('active'));
   const slide = slides[idx];
   if (!slide) return;
+
   slide.classList.add('active');
   currentIdx = idx;
   updateDots(idx);
@@ -371,17 +356,18 @@ function showSlide(idx) {
   const item = playlist[idx];
   const dur = (item.duration || config.duration || 10) * 1000;
 
-  // Progress bar
   const pb = document.getElementById('progress');
-  pb.style.transition = 'none'; pb.style.width = '0%';
+  pb.style.transition = 'none';
+  pb.style.width = '0%';
   requestAnimationFrame(() => {
-    pb.style.transition = `width ${dur}ms linear`; pb.style.width = '100%';
+    pb.style.transition = `width ${dur}ms linear`;
+    pb.style.width = '100%';
   });
 
   const vid = slide.querySelector('video');
   if (vid) {
     vid.currentTime = 0;
-    vid.play().catch(()=>{});
+    vid.play().catch(() => {});
     vid.onended = advance;
   } else {
     slideTimer = setTimeout(advance, dur);
@@ -399,38 +385,40 @@ function advance() {
 
 function buildDots() {
   const el = document.getElementById('dots');
-  el.innerHTML = playlist.map((_,i) => `<div class="dot"></div>`).join('');
+  el.innerHTML = playlist.map(() => `<div class="dot"></div>`).join('');
 }
+
 function updateDots(idx) {
-  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
 }
 
 // ════════════════════════════════════
-//  CLOCK
+//  RELÓGIO
 // ════════════════════════════════════
 function updateClock() {
   const n = new Date();
-  const hh = String(n.getHours()).padStart(2,'0');
-  const mm = String(n.getMinutes()).padStart(2,'0');
+  const hh = String(n.getHours()).padStart(2, '0');
+  const mm = String(n.getMinutes()).padStart(2, '0');
   document.getElementById('hud-clock').textContent = `${hh}:${mm}`;
   const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  document.getElementById('hud-date').innerHTML = `${days[n.getDay()]} ${n.getDate()} ${months[n.getMonth()]} ${n.getFullYear()}`;
+  document.getElementById('hud-date').innerHTML =
+    `${days[n.getDay()]} ${n.getDate()} ${months[n.getMonth()]} ${n.getFullYear()}`;
 }
 updateClock();
 setInterval(updateClock, 1000);
 
-// Keyboard: F = fullscreen
+// F = fullscreen
 document.addEventListener('keydown', e => {
   if (e.key === 'f' || e.key === 'F') {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
     else document.exitFullscreen();
   }
 });
 
-// Auto fullscreen on click
+// Primeiro clique = fullscreen (libera autoplay com áudio no navegador)
 document.body.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
 }, { once: true });
 
 connectWS();
