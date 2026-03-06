@@ -24,7 +24,6 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif; min-height:100vh; }
 
-/* ── Header ── */
 .header {
   height:60px; background:var(--surface); border-bottom:1px solid var(--border);
   display:flex; align-items:center; justify-content:space-between;
@@ -34,10 +33,8 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .logo span { color:var(--text); font-weight:300; }
 .header-right { display:flex; gap:10px; align-items:center; }
 
-/* ── Layout ── */
 .layout { display:grid; grid-template-columns:230px 1fr; min-height:calc(100vh - 60px); }
 
-/* ── Sidebar ── */
 .sidebar { background:var(--surface); border-right:1px solid var(--border); padding:20px 12px; }
 .sidebar-section { margin-bottom:6px; }
 .sidebar-label { font-size:.68rem; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); padding:0 10px; margin-bottom:5px; margin-top:16px; }
@@ -47,24 +44,19 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .nav-icon { font-size:1rem; width:18px; text-align:center; }
 .sidebar-divider { height:1px; background:var(--border); margin:10px 4px; }
 
-/* ── Main ── */
 .main { padding:28px; overflow-y:auto; }
 
-/* ── Tabs ── */
 .tab-panel { display:none; }
 .tab-panel.active { display:block; }
 
-/* ── Stats row ── */
 .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:26px; }
 .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
 .stat-val { font-family:'Barlow Condensed',sans-serif; font-size:2.2rem; font-weight:700; color:var(--accent); line-height:1; }
 .stat-lbl { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-top:5px; }
 
-/* ── Section header ── */
 .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
 .section-title { font-family:'Barlow Condensed',sans-serif; font-size:1.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
 
-/* ── Buttons ── */
 .btn { padding:8px 18px; border-radius:6px; border:none; font-family:'Barlow',sans-serif; font-size:.85rem; font-weight:500; cursor:pointer; transition:all .18s; letter-spacing:.03em; }
 .btn-primary { background:var(--accent); color:#000; }
 .btn-primary:hover { background:#33eaff; box-shadow:0 0 18px rgba(0,229,255,.3); }
@@ -77,10 +69,16 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .btn-icon:hover { border-color:var(--accent); color:var(--accent); }
 .btn-icon.danger:hover { border-color:var(--danger); color:var(--danger); }
 
-/* ── Playlist ── */
 .playlist-grid { display:grid; grid-template-columns:1fr 340px; gap:22px; align-items:start; }
 .card { background:var(--surface); border:1px solid var(--border); border-radius:11px; overflow:hidden; }
 .card-header { padding:13px 18px; border-bottom:1px solid var(--border); font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+.card-body { padding:18px; }
+
+.playlists-selector { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.playlist-btn { padding:8px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; font-family:'Barlow',sans-serif; transition:all .18s; }
+.playlist-btn:hover { border-color:var(--accent); color:var(--text); }
+.playlist-btn.active { background:var(--accent); color:#000; border-color:var(--accent); }
+.playlist-btn.new-btn { color:var(--accent); border-color:var(--accent); background:transparent; }
 
 .slide-list-header {
   padding:10px 18px; border-bottom:1px solid var(--border);
@@ -95,14 +93,12 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 }
 .slide-item:last-child { border-bottom:none; }
 .slide-item:hover { background:rgba(255,255,255,.02); }
-.slide-item.dragging { opacity:.35; }
 .slide-item.drag-over { border-top:2px solid var(--accent); }
 
 .slide-thumb { width:46px; height:30px; border-radius:4px; background:var(--border); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
 .slide-thumb img { width:100%; height:100%; object-fit:cover; }
-
 .slide-name { font-size:.85rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.slide-sub { font-size:.72rem; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slide-sub { font-size:.72rem; color:var(--muted); margin-top:1px; }
 
 .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:20px; font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
 .badge-image { background:rgba(0,229,255,.1); color:var(--accent); }
@@ -112,21 +108,19 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .empty-list { padding:50px 20px; text-align:center; color:var(--muted); }
 .empty-list .ei { font-size:2.5rem; margin-bottom:10px; }
 
-/* ── Quick add card ── */
 .quick-add-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:7px; border:1px solid var(--border); background:transparent; color:var(--text); font-family:'Barlow',sans-serif; font-size:.875rem; cursor:pointer; width:100%; margin-bottom:8px; transition:all .18s; }
 .quick-add-btn:last-child { margin-bottom:0; }
 .quick-add-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,229,255,.05); }
 
-/* ── Toggle ── */
 .toggle { display:flex; align-items:center; gap:9px; cursor:pointer; user-select:none; }
 .toggle-track { width:38px; height:22px; background:var(--border); border-radius:11px; position:relative; transition:background .2s; flex-shrink:0; }
 .toggle input { display:none; }
 .toggle input:checked + .toggle-track { background:var(--accent); }
 .toggle-knob { position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:left .2s; }
-.toggle input:checked ~ .toggle-track .toggle-knob { left:19px; }
+.toggle input:checked ~ .toggle-track .toggle-knob,
+.toggle input:checked + .toggle-track .toggle-knob { left:19px; }
 .toggle-lbl { font-size:.85rem; color:var(--text); }
 
-/* ── Form ── */
 .form-group { margin-bottom:15px; }
 .form-label { display:block; font-size:.72rem; font-weight:600; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.08em; }
 .form-input, .form-select, .form-textarea {
@@ -138,30 +132,31 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .form-select option { background:#1a1a2e; }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-/* ── Upload zone ── */
 .upload-zone {
   border:2px dashed var(--border); border-radius:9px; padding:30px 16px;
   text-align:center; cursor:pointer; transition:all .25s; position:relative;
 }
 .upload-zone:hover, .upload-zone.drag-over { border-color:var(--accent); background:rgba(0,229,255,.04); }
-.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
 .upload-icon { font-size:2.2rem; margin-bottom:8px; }
 .upload-text { font-size:.85rem; color:var(--muted); }
 .upload-text strong { color:var(--accent); }
 .upload-hint { font-size:.72rem; color:var(--muted); margin-top:4px; }
 
-/* ── Media grid ── */
+.upload-progress { display:none; margin-top:12px; }
+.progress-bar-wrap { height:4px; background:var(--border); border-radius:2px; margin-top:6px; }
+.progress-bar-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .3s; width:0%; }
+
 .media-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
 .media-card { background:var(--surface); border:1px solid var(--border); border-radius:9px; overflow:hidden; transition:all .18s; }
 .media-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.4); }
-.media-preview { width:100%; height:100px; object-fit:cover; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:2.2rem; overflow:hidden; }
+.media-preview { width:100%; height:100px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:2.2rem; overflow:hidden; }
 .media-preview img, .media-preview video { width:100%; height:100%; object-fit:cover; }
 .media-info { padding:9px 11px; }
 .media-name { font-size:.78rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .media-meta { font-size:.7rem; color:var(--muted); margin-top:2px; }
 .media-actions { padding:0 11px 10px; display:flex; gap:6px; }
 
-/* ── Players list ── */
 .players-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
 .player-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; }
 .player-status { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
@@ -170,11 +165,8 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .player-detail { font-size:.78rem; color:var(--muted); margin-top:4px; }
 .no-players { padding:40px; text-align:center; color:var(--muted); }
 
-/* ── Settings grid ── */
 .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.card-body { padding:18px; }
 
-/* ── Player URL box ── */
 .player-url-box {
   background:var(--surface2); border:1px solid var(--border); border-radius:10px;
   padding:20px; margin-bottom:20px;
@@ -187,35 +179,22 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .player-url-text { font-family:monospace; font-size:.9rem; color:var(--accent); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .player-url-hint { font-size:.78rem; color:var(--muted); margin-top:8px; }
 
-/* ── QR placeholder ── */
 .qr-box { text-align:center; padding:16px; }
 #qr-canvas { border-radius:8px; background:#fff; padding:8px; }
 
-/* ── Modal ── */
 .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; }
 .modal-overlay.open { display:flex; }
 .modal { background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:28px; width:min(500px,92vw); max-height:88vh; overflow-y:auto; }
 .modal-title { font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:22px; }
 .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:22px; }
 
-/* ── Toast ── */
-#toast { position:fixed; bottom:22px; right:22px; background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); padding:12px 18px; border-radius:8px; font-size:.85rem; z-index:999; transform:translateX(calc(100% + 40px)); transition:transform .3s ease; max-width:280px; }
-#toast.show { transform:translateX(0); }
-
-/* ── Upload progress ── */
-.upload-progress { margin-top:10px; display:none; }
-.progress-bar-wrap { height:4px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:6px; }
-.progress-bar-fill { height:100%; background:var(--accent); width:0; transition:width .2s; }
-
-/* ── Playlists selector ── */
-.playlists-selector { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
-.playlist-btn { padding:8px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:.82rem; font-family:'Barlow',sans-serif; transition:all .18s; }
-.playlist-btn:hover { border-color:var(--accent); color:var(--text); }
-.playlist-btn.active { background:var(--accent); color:#000; border-color:var(--accent); }
-.playlist-btn.new { color:var(--accent); border-color:var(--accent); }
-
-/* scrollbar */
-::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+#toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--surface2); border:1px solid var(--border); color:var(--text);
+  padding:10px 22px; border-radius:8px; font-size:.875rem;
+  opacity:0; transition:all .3s; z-index:999; pointer-events:none; white-space:nowrap;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -230,7 +209,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 </header>
 
 <div class="layout">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-section">
       <button class="nav-item active" onclick="showTab('tab-playlist',this)"><span class="nav-icon">🎬</span>Playlist</button>
@@ -249,7 +227,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 
   <main class="main">
 
-    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-card"><div class="stat-val" id="stat-slides">0</div><div class="stat-lbl">Slides</div></div>
       <div class="stat-card"><div class="stat-val" id="stat-media">0</div><div class="stat-lbl">Arquivos</div></div>
@@ -261,9 +238,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
     <div id="tab-playlist" class="tab-panel active">
       <div class="section-header">
         <div class="section-title">Playlists</div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="openNewPlaylistModal()">+ Nova</button>
-        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openNewPlaylistModal()">+ Nova playlist</button>
       </div>
 
       <div class="playlists-selector" id="playlists-selector"></div>
@@ -312,7 +287,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
               </div>
               <div class="form-group">
                 <label class="form-label">Rótulo</label>
-                <input class="form-input" id="ticker-label" placeholder="AVISOS" oninput="saveTickerConfig()">
+                <input class="form-input" id="ticker-label-input" placeholder="AVISOS" oninput="saveTickerConfig()">
               </div>
             </div>
           </div>
@@ -336,12 +311,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
       </div>
       <div style="margin-top:22px">
-        <div id="media-grid" class="media-grid">
-          <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted)">
-            <div style="font-size:2.5rem;margin-bottom:10px">📁</div>
-            <div>Nenhum arquivo na biblioteca</div>
-          </div>
-        </div>
+        <div id="media-grid" class="media-grid"></div>
       </div>
     </div>
 
@@ -352,7 +322,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         <button class="btn btn-ghost btn-sm" onclick="loadPlayers()">🔄 Atualizar</button>
       </div>
 
-      <!-- Player URL box -->
       <div class="player-url-box">
         <div class="player-url-label">🔗 Link de acesso para as telas</div>
         <div class="player-url-display">
@@ -360,10 +329,10 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
           <button class="btn btn-primary btn-sm" onclick="copyPlayerUrl()">Copiar</button>
           <button class="btn btn-ghost btn-sm" onclick="openPlayerUrl()">Abrir ↗</button>
         </div>
-        <div class="player-url-hint">Abra este link no navegador de cada TV ou monitor. Funciona em Chrome, Edge, Firefox.</div>
+        <div class="player-url-hint">Abra este link no navegador de cada TV ou monitor.</div>
         <div class="qr-box">
           <canvas id="qr-canvas" width="150" height="150"></canvas>
-          <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Escaneie com o celular para acessar</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Escaneie com o celular</div>
         </div>
       </div>
 
@@ -447,7 +416,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         </div>
 
         <div class="card">
-          <div class="card-header">Orientação da Tela</div>
+          <div class="card-header">Orientação Padrão</div>
           <div class="card-body">
             <div class="form-group">
               <label class="form-label">Modo de exibição</label>
@@ -456,7 +425,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
                 <option value="portrait">📱 Retrato (9:16)</option>
               </select>
             </div>
-            <div style="font-size:.78rem;color:var(--muted);margin-top:8px">A orientação será aplicada a todas as telas conectadas</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:8px">Pode ser sobrescrito por tela na aba "Telas Conectadas"</div>
           </div>
         </div>
 
@@ -464,9 +433,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
           <div class="card-header">Dados</div>
           <div class="card-body">
             <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Todos os arquivos ficam armazenados no servidor.</p>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <button class="btn btn-ghost btn-sm" onclick="exportData()">📤 Exportar playlist JSON</button>
-            </div>
+            <button class="btn btn-ghost btn-sm" onclick="exportData()">📤 Exportar JSON</button>
           </div>
         </div>
 
@@ -476,7 +443,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </main>
 </div>
 
-<!-- Add Slide Modal -->
+<!-- Modal: Adicionar Slide -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <div class="modal-title" id="modal-title-text">Adicionar Slide</div>
@@ -486,7 +453,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         <input type="file" id="modal-file-input" onchange="handleModalFile(this)">
         <div class="upload-icon" id="modal-icon">🖼️</div>
         <div class="upload-text"><strong>Selecionar arquivo</strong></div>
-        <div class="upload-hint" id="modal-hint">PNG, JPG, GIF, WebP, MP4, WebM</div>
+        <div class="upload-hint" id="modal-hint">PNG, JPG, GIF, WebP</div>
       </div>
       <div id="modal-file-info" style="display:none;margin-top:8px;font-size:.82rem;color:var(--success)"></div>
     </div>
@@ -522,12 +489,12 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="addSlide()">+ Adicionar à playlist</button>
+      <button class="btn btn-primary" onclick="confirmAddSlide()">+ Adicionar à playlist</button>
     </div>
   </div>
 </div>
 
-<!-- New Playlist Modal -->
+<!-- Modal: Nova Playlist -->
 <div class="modal-overlay" id="new-playlist-modal">
   <div class="modal">
     <div class="modal-title">Nova Playlist</div>
@@ -544,36 +511,17 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 
 <div id="toast"></div>
 
-<!-- Tiny QR generator (pure JS, no dependency) -->
-<script>
-// Minimal QR code generator
-(function(){
-  window.drawQR = function(canvas, text) {
-    const ctx = canvas.getContext('2d');
-    const s = canvas.width;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0,0,s,s);
-    ctx.fillStyle = '#111';
-    ctx.font = `${s*0.07}px monospace`;
-    ctx.textAlign = 'center';
-    const words = text.replace('https://','').replace('http://','').split('/');
-    ctx.fillText('Acesse:', s/2, s*0.35);
-    words.forEach((w,i) => ctx.fillText(w, s/2, s*0.5 + i*s*0.13));
-    ctx.fillText('no navegador', s/2, s*0.85);
-  };
-})();
-</script>
-
 <script>
 // ═══════════════════════════════════════
-// STATE
+// ESTADO
 // ═══════════════════════════════════════
-let appData = { playlists: [], activePlaylistId: null, config: {}, media: [] };
+let appData = { playlists: [], activePlaylistId: null, screenConfigs: {}, config: {}, media: [] };
 let currentPlaylist = null;
 let modalType = 'image';
 let modalMediaId = null;
 let modalUploadedId = null;
 let editingIdx = null;
+let dragIdx = null;
 
 const API = '';
 
@@ -581,25 +529,30 @@ const API = '';
 // INIT
 // ═══════════════════════════════════════
 async function init() {
-  await loadData();
-  renderAll();
-  setPlayerUrl();
-  setInterval(loadPlayers, 8000);
-  loadPlayers();
+  try {
+    await loadData();
+    renderAll();
+    setPlayerUrl();
+    setInterval(loadPlayers, 8000);
+    loadPlayers();
+  } catch(e) {
+    toast('❌ Erro ao carregar dados do servidor');
+    console.error('init error:', e);
+  }
 }
 
 async function loadData() {
-  const res = await fetch(`${API}/api/data`);
+  const res = await fetch('/api/data');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   appData = await res.json();
-  // Ensure we have at least one playlist
   if (!appData.playlists || appData.playlists.length === 0) {
     appData.playlists = [{ id: Date.now().toString(), name: 'Playlist Principal', slides: [] }];
     appData.activePlaylistId = appData.playlists[0].id;
   }
-  if (!appData.activePlaylistId) {
-    appData.activePlaylistId = appData.playlists[0].id;
-  }
-  currentPlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+  if (!appData.activePlaylistId) appData.activePlaylistId = appData.playlists[0].id;
+  if (!appData.screenConfigs) appData.screenConfigs = {};
+  if (!appData.media) appData.media = [];
+  currentPlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId) || appData.playlists[0];
 }
 
 function renderAll() {
@@ -627,13 +580,13 @@ function showTab(id, el) {
 function renderPlaylists() {
   const container = document.getElementById('playlists-selector');
   container.innerHTML = appData.playlists.map(p => `
-    <button class="playlist-btn ${p.id === appData.activePlaylistId ? 'active' : ''}" 
-            onclick="switchPlaylist('${p.id}')" 
-            oncontextmenu="showPlaylistMenu(event, '${p.id}')">
-      ${p.name} (${p.slides.length})
+    <button class="playlist-btn ${p.id === appData.activePlaylistId ? 'active' : ''}"
+            onclick="switchPlaylist('${p.id}')"
+            oncontextmenu="onPlaylistRightClick(event,'${p.id}')">
+      ${escHtml(p.name)} (${p.slides.length})
     </button>
   `).join('');
-  container.innerHTML += `<button class="playlist-btn new" onclick="openNewPlaylistModal()">+ Nova</button>`;
+  container.innerHTML += `<button class="playlist-btn new-btn" onclick="openNewPlaylistModal()">+ Nova</button>`;
 }
 
 function switchPlaylist(id) {
@@ -642,18 +595,13 @@ function switchPlaylist(id) {
   renderPlaylists();
   renderPlaylist();
   updateStats();
-  saveActivePlaylist();
-  broadcast({ type: 'playlist', payload: currentPlaylist.slides });
-}
-
-async function saveActivePlaylist() {
-  await fetch(`${API}/api/playlists/${appData.activePlaylistId}/activate`, { method: 'POST' });
+  fetch('/api/playlists/' + id + '/activate', { method: 'POST' }).catch(() => {});
 }
 
 function openNewPlaylistModal() {
   document.getElementById('new-playlist-modal').classList.add('open');
   document.getElementById('new-playlist-name').value = '';
-  document.getElementById('new-playlist-name').focus();
+  setTimeout(() => document.getElementById('new-playlist-name').focus(), 50);
 }
 
 function closeNewPlaylistModal() {
@@ -663,133 +611,53 @@ function closeNewPlaylistModal() {
 async function createNewPlaylist() {
   const name = document.getElementById('new-playlist-name').value.trim();
   if (!name) { toast('⚠️ Informe um nome para a playlist'); return; }
-  
-  const res = await fetch(`${API}/api/playlists`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name })
-  });
-  const newPlaylist = await res.json();
-  appData.playlists.push(newPlaylist);
-  switchPlaylist(newPlaylist.id);
-  closeNewPlaylistModal();
-  toast(`Playlist "${name}" criada!`);
+  try {
+    const res = await fetch('/api/playlists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const newPl = await res.json();
+    appData.playlists.push(newPl);
+    closeNewPlaylistModal();
+    switchPlaylist(newPl.id);
+    toast(`✅ Playlist "${name}" criada!`);
+  } catch(e) {
+    toast('❌ Erro ao criar playlist');
+    console.error(e);
+  }
 }
 
-function showPlaylistMenu(e, id) {
+function onPlaylistRightClick(e, id) {
   e.preventDefault();
-  if (appData.playlists.length === 1) {
-    toast('⚠️ Não é possível deletar a única playlist');
-    return;
-  }
-  if (confirm('Deletar esta playlist?')) {
-    deletePlaylist(id);
-  }
+  if (appData.playlists.length <= 1) { toast('⚠️ Não é possível deletar a única playlist'); return; }
+  if (confirm('Deletar esta playlist?')) deletePlaylist(id);
 }
 
 async function deletePlaylist(id) {
-  await fetch(`${API}/api/playlists/${id}`, { method: 'DELETE' });
-  appData.playlists = appData.playlists.filter(p => p.id !== id);
-  if (appData.activePlaylistId === id) {
-    appData.activePlaylistId = appData.playlists[0].id;
-  }
-  currentPlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
-  renderAll();
-  toast('Playlist deletada');
-}
-
-// ═══════════════════════════════════════
-// PLAYERS
-// ═══════════════════════════════════════
-function setPlayerUrl() {
-  const url = `${location.protocol}//${location.host}/player`;
-  document.getElementById('player-url-text').textContent = url;
-  drawQR(document.getElementById('qr-canvas'), url);
-}
-
-function copyPlayerUrl() {
-  const url = `${location.protocol}//${location.host}/player`;
-  navigator.clipboard.writeText(url).then(() => toast('Link copiado!'));
-}
-
-function openPlayerUrl() {
-  window.open(`${location.protocol}//${location.host}/player`, '_blank');
-}
-
-// Substitua a função loadPlayers existente no seu <script>:
-async function loadPlayers() {
-  const res = await fetch(`${API}/api/players`);
-  const playersList = await res.json();
-  const listEl = document.getElementById('players-list');
-
-  if (playersList.length === 0) {
-    listEl.innerHTML = '<div class="no-players">Nenhuma tela conectada</div>';
-    return;
-  }
-
-  listEl.innerHTML = playersList.map(p => {
-    const sConf = appData.screenConfigs?.[p.screen] || {};
-    const currentPlaylistId = sConf.playlistId || appData.activePlaylistId;
-    const currentOrient = sConf.orientation || appData.config.orientation;
-
-    return `
-    <div class="player-card">
-      <div class="player-status"><div class="status-dot"></div><div class="player-name">${p.screen}</div></div>
-      <div class="form-group">
-        <label class="form-label">Playlist</label>
-        <select class="form-select" onchange="updateScreenConfig('${p.screen}', this.value, null)">
-          ${appData.playlists.map(pl => `<option value="${pl.id}" ${pl.id === currentPlaylistId ? 'selected' : ''}>${pl.name}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Orientação</label>
-        <select class="form-select" onchange="updateScreenConfig('${p.screen}', null, this.value)">
-          <option value="landscape" ${currentOrient === 'landscape' ? 'selected' : ''}>Horizontal</option>
-          <option value="portrait" ${currentOrient === 'portrait' ? 'selected' : ''}>Vertical</option>
-        </select>
-      </div>
-      <div class="player-detail">IP: ${p.ip}</div>
-    </div>`;
-  }).join('');
-}
-
-// Adicione esta nova função:
-async function updateScreenConfig(screenName, playlistId, orientation) {
-  const current = appData.screenConfigs?.[screenName] || {};
-  const payload = {
-    screenName,
-    playlistId: playlistId || current.playlistId || appData.activePlaylistId,
-    orientation: orientation || current.orientation || appData.config.orientation
-  };
-
   try {
-    const res = await fetch(`${API}/api/screens/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      toast(`❌ Erro: ${err.error || 'Falha ao atualizar tela'}`);
-      return;
-    }
-    if (!appData.screenConfigs) appData.screenConfigs = {};
-    appData.screenConfigs[screenName] = { playlistId: payload.playlistId, orientation: payload.orientation };
-    toast('✅ Configuração da tela atualizada!');
-  } catch (err) {
-    toast('❌ Erro de conexão ao atualizar tela.');
-    console.error('updateScreenConfig error:', err);
+    const res = await fetch('/api/playlists/' + id, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    appData.playlists = appData.playlists.filter(p => p.id !== id);
+    if (appData.activePlaylistId === id) appData.activePlaylistId = appData.playlists[0].id;
+    currentPlaylist = appData.playlists.find(p => p.id === appData.activePlaylistId);
+    renderAll();
+    toast('Playlist deletada');
+  } catch(e) {
+    toast('❌ Erro ao deletar playlist');
+    console.error(e);
   }
-}
 }
 
 // ═══════════════════════════════════════
-// PLAYLIST
+// SLIDES
 // ═══════════════════════════════════════
 function renderPlaylist() {
   if (!currentPlaylist) return;
   document.getElementById('current-playlist-title').textContent = currentPlaylist.name;
   const body = document.getElementById('slide-list-body');
+
   if (!currentPlaylist.slides.length) {
     body.innerHTML = `<div class="empty-list"><div class="ei">🎬</div><div>Playlist vazia</div></div>`;
     return;
@@ -802,11 +670,11 @@ function renderPlaylist() {
     const badge = item.type === 'image' ? 'badge-image' : item.type === 'video' ? 'badge-video' : 'badge-url';
     const typeLabel = item.type === 'image' ? '🖼 Imagem' : item.type === 'video' ? '🎥 Vídeo' : '🌐 URL';
     const dur = item.duration || appData.config.duration || 10;
-
     return `<div class="slide-item" draggable="true" data-i="${i}"
-        ondragstart="dragStart(event,${i})" ondragover="dragOver(event,${i})" ondrop="drop(event,${i})" ondragleave="dragLeave(event)">
+        ondragstart="dragStart(event,${i})" ondragover="dragOver(event,${i})"
+        ondrop="drop(event,${i})" ondragleave="dragLeave(event)">
       <div class="slide-thumb">${thumbHtml}</div>
-      <div><div class="slide-name">${item.title || item.name || item.url || '—'}</div><div class="slide-sub">${item.subtitle||''}</div></div>
+      <div><div class="slide-name">${escHtml(item.title || item.name || item.url || '—')}</div><div class="slide-sub">${escHtml(item.subtitle || '')}</div></div>
       <span class="badge ${badge}">${typeLabel}</span>
       <span style="font-size:.82rem;color:var(--muted)">${dur}s</span>
       <div style="display:flex;gap:5px">
@@ -817,7 +685,7 @@ function renderPlaylist() {
   }).join('');
 }
 
-let dragIdx = null;
+// Drag & Drop
 function dragStart(e, i) { dragIdx = i; }
 function dragOver(e, i) {
   e.preventDefault();
@@ -837,7 +705,7 @@ function drop(e, targetIdx) {
 
 async function savePlaylist() {
   try {
-    const res = await fetch(`${API}/api/playlists/${currentPlaylist.id}/slides`, {
+    const res = await fetch('/api/playlists/' + currentPlaylist.id + '/slides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentPlaylist.slides)
@@ -845,10 +713,10 @@ async function savePlaylist() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     renderPlaylist();
     updateStats();
-    toast('Playlist atualizada nas telas!');
-  } catch (err) {
-    toast('❌ Erro ao salvar playlist. Tente novamente.');
-    console.error('savePlaylist error:', err);
+    toast('✅ Playlist salva!');
+  } catch(e) {
+    toast('❌ Erro ao salvar playlist');
+    console.error(e);
   }
 }
 
@@ -870,99 +738,19 @@ function editSlide(i) {
 }
 
 // ═══════════════════════════════════════
-// MEDIA
-// ═══════════════════════════════════════
-function renderMedia() {
-  const grid = document.getElementById('media-grid');
-  if (!appData.media.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted)"><div style="font-size:2.5rem;margin-bottom:10px">📁</div><div>Nenhum arquivo</div></div>`;
-    return;
-  }
-
-  grid.innerHTML = appData.media.map((m, i) => {
-    const preview = m.type === 'image'
-      ? `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover">`
-      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:var(--bg)">🎥</div>`;
-    return `<div class="media-card">
-      <div class="media-preview">${preview}</div>
-      <div class="media-info">
-        <div class="media-name">${m.originalName}</div>
-        <div class="media-meta">${formatSize(m.size)} · ${m.type}</div>
-      </div>
-      <div class="media-actions">
-        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="addMediaToPlaylist('${m.id}')">+ Playlist</button>
-        <button class="btn-icon danger" onclick="deleteMedia('${m.id}')">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function uploadFiles(files) {
-  const progressEl = document.getElementById('upload-progress');
-  const fillEl = document.getElementById('progress-fill');
-  const statusEl = document.getElementById('upload-status');
-  progressEl.style.display = 'block';
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    statusEl.textContent = `Enviando ${i+1}/${files.length}: ${file.name}`;
-    fillEl.style.width = `${((i)/files.length*100)}%`;
-
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch(`${API}/api/media/upload`, { method:'POST', body:fd });
-    const item = await res.json();
-    appData.media.push(item);
-  }
-
-  fillEl.style.width = '100%';
-  statusEl.textContent = `✅ ${files.length} arquivo(s) enviado(s)`;
-  setTimeout(() => { progressEl.style.display = 'none'; fillEl.style.width = '0'; }, 2500);
-
-  renderMedia();
-  updateStats();
-  toast(`${files.length} arquivo(s) enviado(s)!`);
-}
-
-async function deleteMedia(id) {
-  if (!confirm('Remover arquivo?')) return;
-  await fetch(`${API}/api/media/${id}`, { method:'DELETE' });
-  appData.media = appData.media.filter(m => m.id !== id);
-  appData.playlists.forEach(p => {
-    p.slides = p.slides.filter(s => s.mediaId !== id);
-  });
-  renderMedia();
-  renderPlaylist();
-  updateStats();
-  toast('Arquivo removido.');
-}
-
-function addMediaToPlaylist(id) {
-  const m = appData.media.find(x => x.id === id);
-  if (!m) return;
-  currentPlaylist.slides.push({
-    id: Date.now().toString(),
-    type: m.type,
-    mediaId: m.id,
-    url: m.url,
-    name: m.originalName,
-    duration: appData.config.duration || 10
-  });
-  savePlaylist();
-}
-
-// ═══════════════════════════════════════
-// ADD MODAL
+// MODAL ADD/EDIT SLIDE
 // ═══════════════════════════════════════
 function openAddModal(type, editItem) {
   modalType = type;
   modalMediaId = null;
   modalUploadedId = null;
-  editingIdx = editItem !== undefined && typeof editItem === 'number' ? editItem : null;
+  if (typeof editItem === 'object' && editItem) {
+    // editSlide passa o objeto
+  } else {
+    editingIdx = null;
+  }
 
-  const modal = document.getElementById('add-modal');
-  modal.classList.add('open');
-
+  document.getElementById('add-modal').classList.add('open');
   document.getElementById('modal-file-info').style.display = 'none';
   document.getElementById('modal-url').value = '';
   document.getElementById('modal-slide-title').value = '';
@@ -984,28 +772,29 @@ function openAddModal(type, editItem) {
     uploadArea.style.display = 'none';
     urlArea.style.display = 'block';
     mediaPicker.style.display = 'none';
-    document.getElementById('modal-title-text').textContent = '🌐 Adicionar URL';
+    document.getElementById('modal-title-text').textContent = editingIdx !== null ? '✏️ Editar Slide' : '🌐 Adicionar URL';
   } else {
     uploadArea.style.display = 'block';
     urlArea.style.display = 'none';
     document.getElementById('modal-icon').textContent = type === 'video' ? '🎥' : '🖼️';
     document.getElementById('modal-hint').textContent = type === 'video' ? 'MP4, WebM, Ogg' : 'PNG, JPG, GIF, WebP';
-    document.getElementById('modal-title-text').textContent = type === 'video' ? '🎥 Adicionar Vídeo' : '🖼️ Adicionar Imagem';
+    document.getElementById('modal-title-text').textContent = editingIdx !== null ? '✏️ Editar Slide' : (type === 'video' ? '🎥 Adicionar Vídeo' : '🖼️ Adicionar Imagem');
     document.getElementById('modal-file-input').accept = type === 'video' ? 'video/*' : 'image/*';
 
-    const libs = appData.media.filter(m => m.type === type);
+    const libs = (appData.media || []).filter(m => m.type === type);
     if (libs.length) {
       mediaPicker.style.display = 'block';
       document.getElementById('modal-media-list').innerHTML = libs.map(m => `
-        <div onclick="selectLibraryItem('${m.id}',this)" style="cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid var(--border);transition:all .15s" title="${m.originalName}">
-          ${m.type==='image' ? `<img src="${m.url}" style="width:100%;height:60px;object-fit:cover">` : `<div style="height:60px;display:flex;align-items:center;justify-content:center;background:var(--bg);font-size:1.5rem">🎥</div>`}
+        <div onclick="selectLibraryItem('${m.id}',this)"
+          style="cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid var(--border);transition:all .15s" title="${escHtml(m.originalName)}">
+          ${m.type === 'image'
+            ? `<img src="${m.url}" style="width:100%;height:60px;object-fit:cover">`
+            : `<div style="height:60px;display:flex;align-items:center;justify-content:center;background:var(--bg);font-size:1.5rem">🎥</div>`}
         </div>`).join('');
     } else {
       mediaPicker.style.display = 'none';
     }
   }
-
-  if (editingIdx !== null) document.getElementById('modal-title-text').textContent = '✏️ Editar Slide';
 }
 
 function selectLibraryItem(id, el) {
@@ -1022,49 +811,51 @@ async function handleModalFile(input) {
   if (!file) return;
   document.getElementById('modal-file-info').style.display = 'block';
   document.getElementById('modal-file-info').textContent = `⏳ Enviando ${file.name}...`;
-
-  const fd = new FormData();
-  fd.append('file', file);
-  const res = await fetch(`${API}/api/media/upload`, { method:'POST', body:fd });
-  const item = await res.json();
-  appData.media.push(item);
-  modalUploadedId = item.id;
-  modalMediaId = null;
-
-  document.getElementById('modal-file-info').textContent = `✅ ${file.name}`;
-  renderMedia();
-  updateStats();
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const item = await res.json();
+    appData.media.push(item);
+    modalUploadedId = item.id;
+    modalMediaId = null;
+    document.getElementById('modal-file-info').textContent = `✅ ${file.name}`;
+    renderMedia();
+    updateStats();
+  } catch(e) {
+    document.getElementById('modal-file-info').textContent = `❌ Erro no upload`;
+    console.error(e);
+  }
 }
 
-async function addSlide() {
+async function confirmAddSlide() {
   const title = document.getElementById('modal-slide-title').value.trim();
   const subtitle = document.getElementById('modal-slide-sub').value.trim();
   const duration = parseInt(document.getElementById('modal-slide-dur').value) || appData.config.duration || 10;
-
   let slide = null;
 
   if (modalType === 'url') {
     const url = document.getElementById('modal-url').value.trim();
-    if (!url) { toast('⚠️ Informe uma URL.'); return; }
-    slide = { id: Date.now().toString(), type:'url', url, name:url, title, subtitle, duration };
+    if (!url) { toast('⚠️ Informe uma URL'); return; }
+    slide = { id: Date.now().toString(), type: 'url', url, name: url, title, subtitle, duration };
   } else {
     const mediaId = modalUploadedId || modalMediaId;
-    if (!mediaId && editingIdx === null) { toast('⚠️ Selecione ou envie um arquivo.'); return; }
-    const m = appData.media.find(x => x.id === mediaId);
-    if (editingIdx !== null && !m) {
-      currentPlaylist.slides[editingIdx] = { ...currentPlaylist.slides[editingIdx], title, subtitle, duration };
-    } else if (m) {
-      slide = { id: Date.now().toString(), type: m.type, mediaId: m.id, url: m.url, name: m.originalName, title, subtitle, duration };
+    if (!mediaId && editingIdx === null) { toast('⚠️ Selecione ou envie um arquivo'); return; }
+    if (mediaId) {
+      const m = appData.media.find(x => x.id === mediaId);
+      if (m) slide = { id: Date.now().toString(), type: m.type, mediaId: m.id, url: m.url, name: m.originalName, title, subtitle, duration };
     }
   }
 
   if (editingIdx !== null) {
     if (slide) currentPlaylist.slides[editingIdx] = slide;
-    else { currentPlaylist.slides[editingIdx] = { ...currentPlaylist.slides[editingIdx], title, subtitle, duration }; }
-    toast('Slide atualizado!');
+    else currentPlaylist.slides[editingIdx] = { ...currentPlaylist.slides[editingIdx], title, subtitle, duration };
   } else if (slide) {
     currentPlaylist.slides.push(slide);
-    toast('Slide adicionado!');
+  } else {
+    toast('⚠️ Nada para adicionar');
+    return;
   }
 
   await savePlaylist();
@@ -1074,6 +865,192 @@ async function addSlide() {
 function closeModal() {
   document.getElementById('add-modal').classList.remove('open');
   editingIdx = null; modalMediaId = null; modalUploadedId = null;
+}
+
+// ═══════════════════════════════════════
+// MEDIA
+// ═══════════════════════════════════════
+function renderMedia() {
+  const grid = document.getElementById('media-grid');
+  if (!appData.media || !appData.media.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted)"><div style="font-size:2.5rem;margin-bottom:10px">📁</div><div>Nenhum arquivo na biblioteca</div></div>`;
+    return;
+  }
+  grid.innerHTML = appData.media.map(m => {
+    const preview = m.type === 'image'
+      ? `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:var(--bg)">🎥</div>`;
+    return `<div class="media-card">
+      <div class="media-preview">${preview}</div>
+      <div class="media-info">
+        <div class="media-name">${escHtml(m.originalName)}</div>
+        <div class="media-meta">${formatSize(m.size)} · ${m.type}</div>
+      </div>
+      <div class="media-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="addMediaToPlaylist('${m.id}')">+ Playlist</button>
+        <button class="btn-icon danger" onclick="deleteMedia('${m.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function uploadFiles(files) {
+  if (!files || !files.length) return;
+  const progressEl = document.getElementById('upload-progress');
+  const fillEl = document.getElementById('progress-fill');
+  const statusEl = document.getElementById('upload-status');
+  progressEl.style.display = 'block';
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    statusEl.textContent = `Enviando ${i+1}/${files.length}: ${file.name}`;
+    fillEl.style.width = `${(i / files.length * 100)}%`;
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const item = await res.json();
+      appData.media.push(item);
+    } catch(e) {
+      toast(`❌ Erro ao enviar ${file.name}`);
+      console.error(e);
+    }
+  }
+
+  fillEl.style.width = '100%';
+  statusEl.textContent = `✅ ${files.length} arquivo(s) enviado(s)`;
+  setTimeout(() => { progressEl.style.display = 'none'; fillEl.style.width = '0'; }, 2500);
+  renderMedia();
+  updateStats();
+  toast(`✅ ${files.length} arquivo(s) enviado(s)!`);
+}
+
+async function deleteMedia(id) {
+  if (!confirm('Remover arquivo da biblioteca?')) return;
+  try {
+    const res = await fetch('/api/media/' + id, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    appData.media = appData.media.filter(m => m.id !== id);
+    appData.playlists.forEach(p => { p.slides = p.slides.filter(s => s.mediaId !== id); });
+    if (currentPlaylist) currentPlaylist.slides = currentPlaylist.slides.filter(s => s.mediaId !== id);
+    renderMedia();
+    renderPlaylist();
+    updateStats();
+    toast('Arquivo removido');
+  } catch(e) {
+    toast('❌ Erro ao remover arquivo');
+    console.error(e);
+  }
+}
+
+function addMediaToPlaylist(id) {
+  const m = appData.media.find(x => x.id === id);
+  if (!m) return;
+  currentPlaylist.slides.push({
+    id: Date.now().toString(),
+    type: m.type,
+    mediaId: m.id,
+    url: m.url,
+    name: m.originalName,
+    duration: appData.config.duration || 10
+  });
+  savePlaylist();
+}
+
+// ═══════════════════════════════════════
+// PLAYERS / TELAS
+// ═══════════════════════════════════════
+function setPlayerUrl() {
+  const url = `${location.protocol}//${location.host}/player`;
+  document.getElementById('player-url-text').textContent = url;
+  drawQR(document.getElementById('qr-canvas'), url);
+}
+
+function copyPlayerUrl() {
+  const url = `${location.protocol}//${location.host}/player`;
+  navigator.clipboard.writeText(url).then(() => toast('📋 Link copiado!')).catch(() => toast('❌ Erro ao copiar'));
+}
+
+function openPlayerUrl() {
+  window.open(`${location.protocol}//${location.host}/player`, '_blank');
+}
+
+async function loadPlayers() {
+  try {
+    const res = await fetch('/api/players');
+    if (!res.ok) return;
+    const playersList = await res.json();
+    const listEl = document.getElementById('players-list');
+
+    // Atualiza badge
+    const badge = document.getElementById('players-badge');
+    const count = document.getElementById('players-count');
+    document.getElementById('stat-players').textContent = playersList.length;
+    if (playersList.length > 0) {
+      badge.style.display = 'inline';
+      count.textContent = playersList.length;
+    } else {
+      badge.style.display = 'none';
+    }
+
+    if (!playersList.length) {
+      listEl.innerHTML = `<div class="no-players"><div style="font-size:2.5rem;margin-bottom:10px">📺</div><div>Nenhuma tela conectada</div><div style="font-size:.8rem;margin-top:6px">Abra o link do player em um monitor</div></div>`;
+      return;
+    }
+
+    listEl.innerHTML = playersList.map(p => {
+      const sConf = appData.screenConfigs?.[p.screen] || {};
+      const currentPlaylistId = sConf.playlistId || appData.activePlaylistId;
+      const currentOrient = sConf.orientation || appData.config.orientation || 'landscape';
+      return `<div class="player-card">
+        <div class="player-status"><div class="status-dot"></div><div class="player-name">${escHtml(p.screen)}</div></div>
+        <div class="form-group">
+          <label class="form-label">Playlist</label>
+          <select class="form-select" onchange="updateScreenConfig('${escHtml(p.screen)}', this.value, null)">
+            ${appData.playlists.map(pl => `<option value="${pl.id}" ${pl.id === currentPlaylistId ? 'selected' : ''}>${escHtml(pl.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Orientação</label>
+          <select class="form-select" onchange="updateScreenConfig('${escHtml(p.screen)}', null, this.value)">
+            <option value="landscape" ${currentOrient === 'landscape' ? 'selected' : ''}>🖥️ Horizontal</option>
+            <option value="portrait" ${currentOrient === 'portrait' ? 'selected' : ''}>📱 Vertical</option>
+          </select>
+        </div>
+        <div class="player-detail">IP: ${p.ip} · conectado ${new Date(p.connectedAt).toLocaleTimeString('pt-BR')}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('loadPlayers error:', e);
+  }
+}
+
+async function updateScreenConfig(screenName, playlistId, orientation) {
+  const current = appData.screenConfigs?.[screenName] || {};
+  const payload = {
+    screenName,
+    playlistId: playlistId || current.playlistId || appData.activePlaylistId,
+    orientation: orientation || current.orientation || appData.config.orientation
+  };
+  try {
+    const res = await fetch('/api/screens/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast(`❌ ${err.error || 'Erro ao atualizar tela'}`);
+      return;
+    }
+    if (!appData.screenConfigs) appData.screenConfigs = {};
+    appData.screenConfigs[screenName] = { playlistId: payload.playlistId, orientation: payload.orientation };
+    toast('✅ Tela atualizada!');
+  } catch(e) {
+    toast('❌ Erro de conexão');
+    console.error(e);
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1092,8 +1069,8 @@ function applyConfigToUI() {
   document.getElementById('cfg-orientation').value = c.orientation || 'landscape';
   document.getElementById('ticker-enabled').checked = !!c.tickerEnabled;
   document.getElementById('ticker-text').value = c.tickerText || '';
-  document.getElementById('ticker-label').value = c.tickerLabel || 'AVISOS';
-  document.getElementById('header-logo').innerHTML = `${c.logo || 'Signage'}<span> Studio</span>`;
+  document.getElementById('ticker-label-input').value = c.tickerLabel || 'AVISOS';
+  document.getElementById('header-logo').innerHTML = `${escHtml(c.logo || 'Signage')}<span> Studio</span>`;
 }
 
 async function saveConfig() {
@@ -1109,22 +1086,30 @@ async function saveConfig() {
     orientation: document.getElementById('cfg-orientation').value,
     tickerEnabled: document.getElementById('ticker-enabled').checked,
     tickerText: document.getElementById('ticker-text').value,
-    tickerLabel: document.getElementById('ticker-label').value || 'AVISOS'
+    tickerLabel: document.getElementById('ticker-label-input').value || 'AVISOS'
   };
-  await fetch(`${API}/api/config`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cfg) });
-  appData.config = cfg;
-  document.getElementById('header-logo').innerHTML = `${cfg.logo || 'Signage'}<span> Studio</span>`;
-  toast('Configurações salvas e enviadas às telas!');
+  try {
+    await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) });
+    appData.config = cfg;
+    document.getElementById('header-logo').innerHTML = `${escHtml(cfg.logo || 'Signage')}<span> Studio</span>`;
+    toast('✅ Configurações salvas!');
+  } catch(e) {
+    toast('❌ Erro ao salvar configurações');
+    console.error(e);
+  }
 }
 
 async function saveTickerConfig() {
   const cfg = {
+    ...appData.config,
     tickerEnabled: document.getElementById('ticker-enabled').checked,
     tickerText: document.getElementById('ticker-text').value,
-    tickerLabel: document.getElementById('ticker-label').value || 'AVISOS'
+    tickerLabel: document.getElementById('ticker-label-input').value || 'AVISOS'
   };
-  appData.config = { ...appData.config, ...cfg };
-  await fetch(`${API}/api/config`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cfg) });
+  appData.config = cfg;
+  try {
+    await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) });
+  } catch(e) { console.error(e); }
 }
 
 // ═══════════════════════════════════════
@@ -1133,34 +1118,61 @@ async function saveTickerConfig() {
 function updateStats() {
   const slides = currentPlaylist ? currentPlaylist.slides.length : 0;
   document.getElementById('stat-slides').textContent = slides;
-  document.getElementById('stat-media').textContent = appData.media.length;
-  const dur = currentPlaylist ? currentPlaylist.slides.reduce((s,i) => s + (i.duration || appData.config.duration || 10), 0) : 0;
+  document.getElementById('stat-media').textContent = appData.media ? appData.media.length : 0;
+  const dur = currentPlaylist
+    ? currentPlaylist.slides.reduce((s, i) => s + (i.duration || appData.config.duration || 10), 0)
+    : 0;
   document.getElementById('stat-dur').textContent = dur >= 60 ? `${Math.floor(dur/60)}m${dur%60}s` : `${dur}s`;
 }
 
 function formatSize(b) {
-  if (b < 1024) return b+'B';
-  if (b < 1048576) return (b/1024).toFixed(1)+'KB';
-  return (b/1048576).toFixed(1)+'MB';
+  if (!b) return '0B';
+  if (b < 1024) return b + 'B';
+  if (b < 1048576) return (b/1024).toFixed(1) + 'KB';
+  return (b/1048576).toFixed(1) + 'MB';
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function exportData() {
-  const blob = new Blob([JSON.stringify({ playlists: appData.playlists, config: appData.config }, null, 2)], { type:'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `signage-${Date.now()}.json`; a.click();
+  const blob = new Blob([JSON.stringify({ playlists: appData.playlists, config: appData.config }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `signage-${Date.now()}.json`;
+  a.click();
 }
 
 function toast(msg) {
   const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-function broadcast(msg) {
-  // This is just for local feedback, actual broadcast happens on server
+// ═══════════════════════════════════════
+// QR CODE (sem dependência externa)
+// ═══════════════════════════════════════
+function drawQR(canvas, text) {
+  const ctx = canvas.getContext('2d');
+  const s = canvas.width;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, s, s);
+  ctx.fillStyle = '#111';
+  ctx.font = `${s*0.07}px monospace`;
+  ctx.textAlign = 'center';
+  const words = text.replace('https://','').replace('http://','').split('/');
+  ctx.fillText('Acesse:', s/2, s*0.35);
+  words.forEach((w, i) => ctx.fillText(w, s/2, s*0.5 + i*s*0.13));
+  ctx.fillText('no navegador', s/2, s*0.85);
 }
 
-// Drag-over upload
+// ═══════════════════════════════════════
+// EVENTOS
+// ═══════════════════════════════════════
 const uz = document.getElementById('upload-zone');
 uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
 uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
@@ -1169,6 +1181,11 @@ uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag
 document.getElementById('add-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 document.getElementById('new-playlist-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeNewPlaylistModal(); });
 
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeNewPlaylistModal(); }
+});
+
+// Inicializa
 init();
 </script>
 </body>
