@@ -321,7 +321,10 @@ function buildSlides() {
     } else if (item.type === 'video') {
       const vid = document.createElement('video');
       vid.src = item.url;
-      vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
+      // Removido o muted para permitir áudio.
+      // Nota: O navegador pode bloquear o autoplay com áudio sem interação prévia.
+      // O player já solicita um clique inicial para fullscreen, o que libera o áudio.
+      vid.muted = false; vid.playsInline = true; vid.preload = 'auto';
       slide.appendChild(vid);
     } else if (item.type === 'url') {
       const frame = document.createElement('iframe');
