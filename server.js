@@ -19,64 +19,49 @@ if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // ─── Data persistence ───────────────────────────────────────────────────────
 function loadData() {
-  if (!fs.existsSync(DATA_FILE)) {
-    const defaults = {
-      playlists: [
-        {
-          id: crypto.randomBytes(8).toString('hex'),
-          name: 'Playlist Principal',
-          slides: []
-        }
-      ],
-      activePlaylistId: null, // Will be set to first playlist ID
-      config: {
-        logo: 'MINHA EMPRESA',
-        accent: '#00e5ff',
-        duration: 10,
-        loop: true,
-        transition: 'fade',
-        showHud: true,
-        showDots: true,
-        fitCover: false,
-        tickerEnabled: false,
-        tickerText: '',
-        tickerLabel: 'AVISOS',
-        orientation: 'landscape' // 'landscape' or 'portrait'
-      },
-      media: []
-    };
-    // Set active playlist to first one
-    defaults.activePlaylistId = defaults.playlists[0].id;
-    fs.writeFileSync(DATA_FILE, JSON.stringify(defaults, null, 2));
-    return defaults;
-  }
-  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  // Migrate old format if needed
-  if (data.playlist && !data.playlists) {
-    data.playlists = [
-      {
-        id: crypto.randomBytes(8).toString('hex'),
-        name: 'Playlist Principal',
-        slides: data.playlist || []
-      }
-    ];
-    data.activePlaylistId = data.playlists[0].id;
-    delete data.playlist;
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-  }
-  // Ensure activePlaylistId is set
-  if (!data.activePlaylistId && data.playlists && data.playlists.length > 0) {
-    data.activePlaylistId = data.playlists[0].id;
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-  }
-  // Ensure orientation config exists
-  if (!data.config.orientation) {
-    data.config.orientation = 'landscape';
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-  }
-  return data;
+  // Adicione em server.js dentro da função loadData, após a criação dos defaults:
+if (!data.screenConfigs) {
+  data.screenConfigs = {};
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
+// Adicione esta nova rota antes do app.listen:
+app.post('/api/screens/config', (req, res) => {
+  const { screenName, playlistId, orientation } = req.body;
+  if (!appData.screenConfigs) appData.screenConfigs = {};
+  
+  appData.screenConfigs[screenName] = { playlistId, orientation };
+  saveData(appData);
+
+  // Notifica o player alvo
+  players.forEach(({ ws, info }) => {
+    if (info.screen === screenName) {
+      const p = appData.playlists.find(pl => pl.id === playlistId);
+      ws.send(JSON.stringify({ 
+        type: 'init', 
+        payload: { ...appData, config: { ...appData.config, orientation }, playlist: p ? p.slides : [] } 
+      }));
+    }
+  });
+  res.json({ ok: true });
+});
+
+// Modifique o WSS 'connection' para ler a config específica:
+ws.on('message', raw => {
+  const msg = JSON.parse(raw);
+  if (msg.type === 'identify') {
+    const name = msg.screen || 'Tela sem nome';
+    players.get(id).info.screen = name;
+    const conf = appData.screenConfigs?.[name] || {};
+    const pId = conf.playlistId || appData.activePlaylistId;
+    const playlist = appData.playlists.find(pl => pl.id === pId);
+    
+    ws.send(JSON.stringify({ 
+      type: 'init', 
+      payload: { ...appData, config: { ...appData.config, orientation: conf.orientation || 'landscape' }, playlist: playlist?.slides || [] } 
+    }));
+  }
+});
 function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
