@@ -1,10 +1,16 @@
 {
-  "playlists": [
-    {
-      "id": "default",
-      "name": "Playlist Principal",
-      "slides": []
+  "playlists": [...],
+  "playersConfig": {
+    "ID_DA_TELA_1": {
+      "playlistId": "default",
+      "orientation": "landscape"
+    },
+    "ID_DA_TELA_2": {
+      "playlistId": "outra-id",
+      "orientation": "portrait"
     }
+  }
+}
   ],
   "activePlaylistId": "default",
   "config": {
