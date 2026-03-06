@@ -216,7 +216,10 @@ function connectWS() {
         applyConfig();
         restartPlayer();
       } else if (msg.type === 'config') {
+        // Preserva a orientação individual recebida no init
+        const savedOrientation = config.orientation;
         config = { ...config, ...msg.payload };
+        if (savedOrientation) config.orientation = savedOrientation;
         applyConfig();
       }
     } catch (err) {
@@ -257,11 +260,29 @@ function applyConfig() {
   // Ticker
   const ticker = document.getElementById('ticker');
   if (c.tickerEnabled && c.tickerText) {
+    const height = c.tickerHeight || '44px';
     ticker.style.display = 'flex';
-    document.getElementById('ticker-label').textContent = c.tickerLabel || 'AVISOS';
-    document.getElementById('ticker-label').style.background = c.accent || '#00e5ff';
+    ticker.style.height = height;
+
+    const labelEl = document.getElementById('ticker-label');
+    labelEl.textContent = c.tickerLabel || 'AVISOS';
+    labelEl.style.background = c.accent || '#00e5ff';
+    labelEl.style.fontFamily = c.tickerFontFamily || "'Barlow Condensed', sans-serif";
+    labelEl.style.fontSize = c.tickerFontSize ? `calc(${c.tickerFontSize} * 0.85)` : '0.85rem';
+
+    const textEl = document.getElementById('ticker-text');
     const t = c.tickerText;
-    document.getElementById('ticker-text').textContent = `${t}   ·   ${t}   ·   ${t}`;
+    textEl.textContent = `${t}   ·   ${t}   ·   ${t}`;
+    textEl.style.fontSize = c.tickerFontSize || '0.9rem';
+    textEl.style.fontFamily = c.tickerFontFamily || "'Barlow', sans-serif";
+    textEl.style.lineHeight = height;
+
+    // Velocidade: recria a animação com a duração correta
+    const speed = parseInt(c.tickerSpeed) || 30;
+    textEl.style.animation = 'none';
+    // Força reflow para reiniciar a animação
+    void textEl.offsetWidth;
+    textEl.style.animation = `ticker-anim ${speed}s linear infinite`;
   } else {
     ticker.style.display = 'none';
   }
